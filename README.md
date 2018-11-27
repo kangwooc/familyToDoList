@@ -5,6 +5,11 @@ Kangwoo Choi, Juan Oh, Tina Zhuang
 
 ## Description
 
+#### Schema 
+
+#### Diagram
+
+#### Different Point (Methods for microservice)
 
 ## Tools for implementing for this app
 <ul>
