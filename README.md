@@ -15,21 +15,21 @@ We want to build a handy app that organizes tasks in a family unit. The intentio
 
 ## Overview
 
-![Alt text](/img/Overview.jpeg?raw=true "Overview of diagram")
+![Alt text](/img/Overview.jpeg?raw=true "Overview of project")
 
 ## Priority for This Project
 
-| Priority | User | Description |
-| ------------- | ------------- | ------------- |
-| P0 | User | I want to sign up/sign in |
-| P1 | Admin | I want to create a family room |
-| P2 | Admin | I want to add tasks in the to-do list |
-| P3 | Member | I want to join a family room |
-| P4 | Admin | I want to receive notification when a user wants to join my family group |
-| P5 | Member | I want to work on a certain task |
-| P6 | Admin | I want to edit/delete tasks in the to-do list |
-| P7 | Member | I want to cancel a task that I am currently working on |
-| P8 | Admin | I want to delete a member from my family group |
+| Priority | User | Description | Technical Implementation Strategy |
+| ------------- | ------------- | ------------- | ------------- |
+| P0 | User | I want to sign up/sign in. | We will implement userhandler for authorization in gateway and save the user information in <strong>MySQL</strong>. |
+| P1 | Admin | I want to create a family room. | We will check for user permission level which is saved in user table in <strong>MySQL</strong> and add the new room to FamilyRoom table in <strong>MySQL</strong>. |
+| P2 | Admin | I want to add tasks in the to-do list. | We will check for user permission level which is saved in user table in <strong>MySQL</strong> and add the new task in <strong>MongoDB</strong>. |
+| P3 | Member | I want to join a family room. | We will check for user authorization which is saved in user table in <strong>MySQL</strong> and implement requesthandler that allows user to send request. Finally, we will add the user as a member of the family in FamilyRoom table in <strong>MySQL</strong> if request is approved.|
+| P4 | Admin | I want to receive notification when a user wants to join my family group. | We will implement requesthandler to allow room owner to receive and approve/disapprove request. |
+| P5 | Member | I want to work on a certain task. | We will check for user permission level which is saved in user table in <strong>MySQL</strong> and change the task status saved in <strong>MongoDB</strong>. |
+| P6 | Admin | I want to edit/delete tasks in the to-do list. | We will check for user permission level which is saved in user table in <strong>MySQL</strong> and update/delete the task status saved in <strong>MongoDB</strong>. |
+| P7 | Member | I want to cancel a task that I am currently working on. | We will check for user permission level which is saved in user table in <strong>MySQL</strong> and update/delete the task status saved in <strong>MongoDB</strong>. |
+| P8 | Admin | I want to delete a member from my family group. | We will check for user permission level which is saved in user table in <strong>MySQL</strong> and delete the member from the FamilyRoom table in <strong>MySQL</strong>. |
 
 ## Different Point (Methods for microservice)
 + GET /:id
@@ -70,6 +70,14 @@ We want to build a handy app that organizes tasks in a family unit. The intentio
 | role_id  | int |
 | type | varchar |
 | description | varchar |
+
+| Request | type |
+| ------------- | ------------- |
+| req_id  | int |
+| member_id | int |
+| family_id | int |
+| isPending | bool |
+
 
 + MongoDB for Task Microservice
 
