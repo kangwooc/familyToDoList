@@ -3,7 +3,7 @@
 ## Members And Roles
 <ul>
     <li>Kangwoo Choi - Mainly working on Microservice</li>
-    <li>Juan Oh - Front-end / Microservice</li>
+    <li>Juan Oh - Front-end / Microservice / Leaderboard </li>
     <li>Tina Zhuang - Authorization / Gateway / Microservice</li>
 </ul>
 
@@ -30,21 +30,8 @@ We want to build a handy app that organizes tasks in a family unit. The intentio
 | P6 | Admin | I want to edit/delete tasks in the to-do list. | We will check for user permission level which is saved in user table in <strong>MySQL</strong> and update/delete the task status saved in <strong>MongoDB</strong>. |
 | P7 | Member | I want to cancel a task that I am currently working on. | We will check for user permission level which is saved in user table in <strong>MySQL</strong> and update/delete the task status saved in <strong>MongoDB</strong>. |
 | P8 | Admin | I want to delete a member from my family group. | We will check for user permission level which is saved in user table in <strong>MySQL</strong> and delete the member from the FamilyRoom table in <strong>MySQL</strong>. |
+| P9 | User | I want to check top 5 users among all users. | We will check for user authorization which is saved in user table in <strong>MySQL</strong>. Also, we add the function handler for updating the ranking. |
 
-## Different Point (Methods for microservice)
-+ GET /:id
-    + If a user is authenticated(member/admin of this family), show the public to do list with all the in-progress tasks and undo tasks. (called to show the public task list)
-+ POST /:id
-  + If a user is authenticated(member), post the task that he/she started on his/her private task list. The public to do list should indicate that this member started on the chosen task. (called when a member clicks on a task in public task list)
-   + If a user is authenticated(admin), post the new task in his/her private task list and the public task list. (called when an admin clicks create task in his/her private task page)
-+ PATCH /:id
-  + If a user is authenticated(admin), update the task in his/her private task list and the public task list. (called when an admin clicks update in his/her private task page)
-+ DELETE /member/:id
-   + If a user is authenticated(admin), delete the user from the family group. (called when an admin clicks on delete in his/her private task page)
-+ DELETE /:taskId
-   + If a user is authenticated(admin), delete the task from his/her private task list and the public task list.
-+ POST /request
-    + If a user is a family group admin, notify him/her about the request and let him/her approve/disapprove on the request.
 ## Appendix
 
 + MySQL for User Information
