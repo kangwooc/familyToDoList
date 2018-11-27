@@ -47,6 +47,8 @@ We want to build a handy app that organizes tasks in a family unit. The intentio
     + If a user is a family group admin, notify him/her about the request and let him/her approve/disapprove on the request.
 ## Appendix
 
++ MySQL for User Information
+  
 | FamilyRoom | type |
 | ------------- | ------------- |
 | family_id  | int |
@@ -68,6 +70,8 @@ We want to build a handy app that organizes tasks in a family unit. The intentio
 | role_id  | int |
 | type | varchar |
 | description | varchar |
+
++ MongoDB for Task Microservice
 
 | Task | type |
 | ------------- | ------------- |
