@@ -136,4 +136,5 @@ typings/
 # Ignore all local history of files
 .history
 
+*.pem
 # End of https://www.gitignore.io/api/go,node,macos,visualstudiocode

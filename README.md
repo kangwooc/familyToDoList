@@ -1,22 +1,91 @@
-# ToDo App - ZCO
+# FamilyToDo App - ZCO
 
-## Members
-Kangwoo Choi, Juan Oh, Tina Zhuang
+## Members And Roles
+<ul>
+    <li>Kangwoo Choi - Mainly working on Microservice</li>
+    <li>Juan Oh - Front-end / Microservice</li>
+    <li>Tina Zhuang - Authorization / Gateway / Microservice</li>
+</ul>
 
 ## Description
 
-#### Schema 
+Family to do list is a web application that allows parents to add tasks to other family members to do. The premise of this app is to organize the tasks that need to be finished in a family unit.
 
-#### Diagram
+We want to build a handy app that organizes tasks in a family unit. The intention is to encourage family members(kids) to complete tasks with a sense of accomplishment through the leveling up system in the app. The app allows admin(parents) in a family to post tasks for family members to do. Members will level up as they complete more tasks. With the visualization, we are hoping to motivate family members to complete their tasks.
 
-#### Different Point (Methods for microservice)
+## Overview
 
-## Tools for implementing for this app
-<ul>
-    <li>Go</li>
-    <li>Node.js for microservices</li>
-    <li>MySQL</li>
-    <li>Radis</li>
-    <li>React.js for front-end</li>
-</ul>
+![Alt text](/img/Overview.jpeg?raw=true "Overview of project")
+
+## Priority for This Project
+
+| Priority | User | Description | Technical Implementation Strategy |
+| ------------- | ------------- | ------------- | ------------- |
+| P0 | User | I want to sign up/sign in. | We will implement userhandler for authorization in gateway and save the user information in <strong>MySQL</strong>. |
+| P1 | Admin | I want to create a family room. | We will check for user permission level which is saved in user table in <strong>MySQL</strong> and add the new room to FamilyRoom table in <strong>MySQL</strong>. |
+| P2 | Admin | I want to add tasks in the to-do list. | We will check for user permission level which is saved in user table in <strong>MySQL</strong> and add the new task in <strong>MongoDB</strong>. |
+| P3 | Member | I want to join a family room. | We will check for user authorization which is saved in user table in <strong>MySQL</strong> and implement requesthandler that allows user to send request. Finally, we will add the user as a member of the family in FamilyRoom table in <strong>MySQL</strong> if request is approved.|
+| P4 | Admin | I want to receive notification when a user wants to join my family group. | We will implement requesthandler to allow room owner to receive and approve/disapprove request. |
+| P5 | Member | I want to work on a certain task. | We will check for user permission level which is saved in user table in <strong>MySQL</strong> and change the task status saved in <strong>MongoDB</strong>. |
+| P6 | Admin | I want to edit/delete tasks in the to-do list. | We will check for user permission level which is saved in user table in <strong>MySQL</strong> and update/delete the task status saved in <strong>MongoDB</strong>. |
+| P7 | Member | I want to cancel a task that I am currently working on. | We will check for user permission level which is saved in user table in <strong>MySQL</strong> and update/delete the task status saved in <strong>MongoDB</strong>. |
+| P8 | Admin | I want to delete a member from my family group. | We will check for user permission level which is saved in user table in <strong>MySQL</strong> and delete the member from the FamilyRoom table in <strong>MySQL</strong>. |
+
+## Different Point (Methods for microservice)
++ GET /:id
+    + If a user is authenticated(member/admin of this family), show the public to do list with all the in-progress tasks and undo tasks. (called to show the public task list)
++ POST /:id
+  + If a user is authenticated(member), post the task that he/she started on his/her private task list. The public to do list should indicate that this member started on the chosen task. (called when a member clicks on a task in public task list)
+   + If a user is authenticated(admin), post the new task in his/her private task list and the public task list. (called when an admin clicks create task in his/her private task page)
++ PATCH /:id
+  + If a user is authenticated(admin), update the task in his/her private task list and the public task list. (called when an admin clicks update in his/her private task page)
++ DELETE /member/:id
+   + If a user is authenticated(admin), delete the user from the family group. (called when an admin clicks on delete in his/her private task page)
++ DELETE /:taskId
+   + If a user is authenticated(admin), delete the task from his/her private task list and the public task list.
++ POST /request
+    + If a user is a family group admin, notify him/her about the request and let him/her approve/disapprove on the request.
+## Appendix
+
++ MySQL for User Information
+  
+| FamilyRoom | type |
+| ------------- | ------------- |
+| family_id  | int |
+| name | varchar |
+| member_id  | int |
+
+| Member | type |
+| ------------- | ------------- |
+| member_id  | int |
+| firstName | varchar |
+| lastName | varchar |
+| userName | varchar |
+| password | varchar |
+| role_id | int |
+| point | int |
+
+| Role | type |
+| ------------- | ------------- |
+| role_id  | int |
+| type | varchar |
+| description | varchar |
+
+| Request | type |
+| ------------- | ------------- |
+| req_id  | int |
+| member_id | int |
+| family_id | int |
+| isPending | bool |
+
+
++ MongoDB for Task Microservice
+
+| Task | type |
+| ------------- | ------------- |
+| task_id  | int |
+| description | varchar |
+| point | int |
+| isProgress | bool |
+| isDone | bool |
 
