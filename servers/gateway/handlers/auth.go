@@ -2,9 +2,9 @@ package handlers
 
 import (
 	"encoding/json"
+	"final-project-zco/servers/gateway/models/users"
+	"final-project-zco/servers/gateway/sessions"
 	"fmt"
-	"homework-juan3674-1532739/servers/gateway/models/users"
-	"homework-juan3674-1532739/servers/gateway/sessions"
 	"net/http"
 	"path"
 	"strconv"
@@ -14,6 +14,7 @@ import (
 
 //UsersHandler handles requests for the "users" resource.
 //it will accept POST requests to create new user account
+// sign up
 func (context *HandlerContext) UsersHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method == http.MethodPost {
 		header := r.Header.Get("Content-Type")
@@ -53,6 +54,138 @@ func (context *HandlerContext) UsersHandler(w http.ResponseWriter, r *http.Reque
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusCreated)
 		err = json.NewEncoder(w).Encode(user)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+	} else {
+		http.Error(w, "Current status method is not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+}
+
+// CreateHandler create a family room
+func (context *HandlerContext) CreateHandler(w http.ResponseWriter, r *http.Request) {
+	if r.Method == http.MethodPost {
+		header := r.Header.Get("Content-Type")
+		if !strings.HasPrefix(header, "application/json") {
+			http.Error(w, "Request body must be in JSON", http.StatusUnsupportedMediaType)
+			return
+		}
+		id := path.Base(r.URL.Path)
+		split := strings.Split(r.URL.Path, "/")
+		if len(split) > 4 {
+			http.Error(w, "User must be authenticated", http.StatusUnauthorized)
+			return
+		}
+		sessionState := &SessionState{}
+		_, err := sessions.GetState(r, context.SigningKey, context.Session, sessionState)
+		if err != nil {
+			http.Error(w, "User must be authenticated", http.StatusUnauthorized)
+			return
+		}
+		var numID int64
+		user := &users.User{}
+		if id != "me" {
+			numID, err = strconv.ParseInt(id, 10, 64)
+			if err != nil {
+				http.Error(w, err.Error(), http.StatusInternalServerError)
+				return
+			}
+		} else {
+			numID = sessionState.User.ID
+		}
+		admin := &Updates{Role: "Admin"}
+		// update the user role to be admin
+		user, err := context.User.Update(sessionState.User.ID, admin)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+
+		var family *users.FamilyRoom
+		err := json.NewDecoder(r.Body).Decode(&family)
+		if err != nil {
+			http.Error(w, "Decoding problem", http.StatusBadRequest)
+			return
+		}
+
+		// insert into family table
+		fam, err := context.Family.InsertFam(family)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusBadRequest)
+			return
+		}
+
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusCreated)
+		err = json.NewEncoder(w).Encode(fam)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+	} else {
+		http.Error(w, "Current status method is not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+}
+
+// JoinHandler join a family room
+func (context *HandlerContext) JoinHandler(w http.ResponseWriter, r *http.Request) {
+	if r.Method == http.MethodPost {
+		header := r.Header.Get("Content-Type")
+		if !strings.HasPrefix(header, "application/json") {
+			http.Error(w, "Request body must be in JSON", http.StatusUnsupportedMediaType)
+			return
+		}
+		id := path.Base(r.URL.Path)
+		split := strings.Split(r.URL.Path, "/")
+		if len(split) > 4 {
+			http.Error(w, "User must be authenticated", http.StatusUnauthorized)
+			return
+		}
+		sessionState := &SessionState{}
+		_, err := sessions.GetState(r, context.SigningKey, context.Session, sessionState)
+		if err != nil {
+			http.Error(w, "User must be authenticated", http.StatusUnauthorized)
+			return
+		}
+		var numID int64
+		user := &users.User{}
+		if id != "me" {
+			numID, err = strconv.ParseInt(id, 10, 64)
+			if err != nil {
+				http.Error(w, err.Error(), http.StatusInternalServerError)
+				return
+			}
+		} else {
+			numID = sessionState.User.ID
+		}
+		admin := &Updates{Role: "Admin"}
+		// update the user role to be admin
+		user, err := context.User.Update(sessionState.User.ID, admin)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+
+		var family *users.FamilyRoom
+		err := json.NewDecoder(r.Body).Decode(&family)
+		if err != nil {
+			http.Error(w, "Decoding problem", http.StatusBadRequest)
+			return
+		}
+
+		// insert into family table
+		fam, err := context.Family.InsertFam(family)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusBadRequest)
+			return
+		}
+
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusCreated)
+		err = json.NewEncoder(w).Encode(fam)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
@@ -110,6 +243,7 @@ func (context *HandlerContext) SpecificUserHandler(w http.ResponseWriter, r *htt
 
 //SessionHandler handles requests for the "sessions" resource, and allows clients to begin a new session
 //using existing user's credentials
+// sign in
 func (context *HandlerContext) SessionHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method == http.MethodPost {
 		header := r.Header.Get("Content-Type")
@@ -124,7 +258,7 @@ func (context *HandlerContext) SessionHandler(w http.ResponseWriter, r *http.Req
 			return
 		}
 
-		profile, err := context.User.GetByEmail(user.Email)
+		profile, err := context.User.GetByUserName(user.UserName)
 		if err != nil {
 			http.Error(w, fmt.Sprintf("Invalid credentials: %v", err), http.StatusUnauthorized)
 			return
@@ -158,6 +292,7 @@ func (context *HandlerContext) SessionHandler(w http.ResponseWriter, r *http.Req
 }
 
 //SpecificSessionHandler handles requestss related to a specific authenticated session
+// sign out
 func (context *HandlerContext) SpecificSessionHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method == "DELETE" {
 		currentSession := path.Base(r.URL.Path)

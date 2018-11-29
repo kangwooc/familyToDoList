@@ -20,6 +20,10 @@ type Store interface {
 	//the newly-inserted User, complete with the DBMS-assigned ID
 	Insert(user *User) (*User, error)
 
+	//Insert inserts the user into the database, and returns
+	//the newly-inserted User, complete with the DBMS-assigned ID
+	InsertFam(family *FamilyRoom) (*FamilyRoom, error)
+
 	//Update applies UserUpdates to the given user ID
 	//and returns the newly-updated user
 	Update(id int64, updates *Updates) (*User, error)

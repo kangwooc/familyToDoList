@@ -9,7 +9,10 @@ create table if not exists users (
     passhash BINARY(60) not null,
     firstname varchar(64) not null,
     lastname varchar(128) not null,
-    photourl varchar(2083) not null 
+    photourl varchar(2083) not null,
+    personrole VARCHAR(255),
+    roomname varchar(128),
+    FOREIGN KEY (roomname) REFERENCES familyroom(roomname)
 );
 
 create table if not exists userlogin (
@@ -17,4 +20,9 @@ create table if not exists userlogin (
     userid int not NULL,
     timesignin DATETIME NOT NULL,
     ipaddr VARCHAR(2083) NOT NULL
+);
+
+create table if not exists familyroom (
+    id INT primary key auto_increment not NULL,
+    roomname varchar(128) not null unique
 );

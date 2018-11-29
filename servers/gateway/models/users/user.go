@@ -4,7 +4,6 @@ import (
 	"crypto/md5"
 	"encoding/hex"
 	"fmt"
-	"net/mail"
 	"strings"
 
 	"golang.org/x/crypto/bcrypt"
@@ -19,12 +18,12 @@ var bcryptCost = 13
 //User represents a user account in the database
 type User struct {
 	ID        int64  `json:"id"`
-	Email     string `json:"-"` //never JSON encoded/decoded
 	PassHash  []byte `json:"-"` //never JSON encoded/decoded
 	UserName  string `json:"username"`
 	FirstName string `json:"firstname"`
 	LastName  string `json:"lastname"`
 	PhotoURL  string `json:"photourl"`
+	Role      string `json:"role"`
 }
 
 //Credentials represents user sign-in credentials
@@ -35,30 +34,34 @@ type Credentials struct {
 
 //NewUser represents a new user signing up for an account
 type NewUser struct {
-	Email        string `json:"email"`
 	Password     string `json:"password"`
 	PasswordConf string `json:"passwordConf"`
 	UserName     string `json:"userName"`
 	FirstName    string `json:"firstName"`
 	LastName     string `json:"lastName"`
+	Role         string `json:"role"`
+}
+
+//Combined represents a new user signing up for an account
+type Combined struct {
+	Role     string `json:"role"`
+	RoomName string `json:"roomname"`
 }
 
 //Updates represents allowed updates to a user profile
 type Updates struct {
-	FirstName string `json:"firstName"`
-	LastName  string `json:"lastName"`
+	Role string `json:"role"`
+}
+
+//FamilyRoom represents family room table
+type FamilyRoom struct {
+	ID       int64  `json:"id"`
+	RoomName string `json:"roomname"`
 }
 
 //Validate validates the new user and returns an error if
 //any of the validation rules fail, or nil if its valid
 func (nu *NewUser) Validate() error {
-	email, err := mail.ParseAddress(nu.Email)
-	if err != nil {
-		return fmt.Errorf("email is not valid: %v", email)
-	}
-	if email.Address == "" {
-		return fmt.Errorf("please enter an email")
-	}
 	if len(nu.Password) < 6 {
 		return fmt.Errorf("Password must be at least 6 characters")
 	}
@@ -71,7 +74,7 @@ func (nu *NewUser) Validate() error {
 	return nil
 }
 
-//ToUser converts the NewUser to a User, setting the
+//ToUser converts the NewUser to a USer, setting the
 //PhotoURL and PassHash fields appropriately
 func (nu *NewUser) ToUser() (*User, error) {
 	err := nu.Validate()
@@ -80,15 +83,14 @@ func (nu *NewUser) ToUser() (*User, error) {
 	}
 	user := &User{}
 	user.UserName = nu.UserName
-	user.Email = nu.Email
 	user.FirstName = nu.FirstName
 	user.LastName = nu.LastName
+	user.Role = nu.Role
 	er := user.SetPassword(nu.Password)
 	if er != nil {
 		return nil, er
 	}
 	hasher := md5.New()
-	hasher.Write([]byte(strings.TrimSpace(strings.ToLower(user.Email))))
 	user.PhotoURL = gravatarBasePhotoURL + hex.EncodeToString(hasher.Sum(nil))
 	return user, nil
 }
@@ -130,10 +132,6 @@ func (u *User) Authenticate(password string) error {
 //ApplyUpdates applies the updates to the user. An error
 //is returned if the updates are invalid
 func (u *User) ApplyUpdates(updates *Updates) error {
-	if len(updates.FirstName) == 0 && len(updates.LastName) == 0 {
-		return fmt.Errorf("Both first name and last name is empty")
-	}
-	u.FirstName = updates.FirstName
-	u.LastName = updates.FirstName
+	u.Role = updates.Role
 	return nil
 }

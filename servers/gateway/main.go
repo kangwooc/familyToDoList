@@ -2,10 +2,10 @@ package main
 
 import (
 	"database/sql"
-	"fmt"
 	"final-project-zco/servers/gateway/handlers"
-	"homework-juan3674-1532739/servers/gateway/models/users"
-	"homework-juan3674-1532739/servers/gateway/sessions"
+	"final-project-zco/servers/gateway/models/users"
+	"final-project-zco/servers/gateway/sessions"
+	"fmt"
 	"log"
 	"net/http"
 	"os"
@@ -40,7 +40,7 @@ func main() {
 	if len(redisAddr) == 0 {
 		redisAddr = "127.0.0.1:6379"
 	}
-	
+
 	mysqlPassWord := os.Getenv("MYSQL_ROOT_PASSWORD")
 	if len(mysqlPassWord) == 0 {
 		os.Stdout.WriteString("mysqlPassWord is not found")

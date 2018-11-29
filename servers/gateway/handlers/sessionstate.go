@@ -1,7 +1,7 @@
 package handlers
 
 import (
-	"homework-juan3674-1532739/servers/gateway/models/users"
+	"final-project-zco/servers/gateway/models/users"
 	"time"
 )
 

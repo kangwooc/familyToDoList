@@ -3,9 +3,9 @@ package handlers
 import (
 	"bytes"
 	"encoding/json"
+	"final-project-zco/servers/gateway/models/users"
+	"final-project-zco/servers/gateway/sessions"
 	"fmt"
-	"homework-juan3674-1532739/servers/gateway/models/users"
-	"homework-juan3674-1532739/servers/gateway/sessions"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -22,7 +22,6 @@ func createFakeContext() *HandlerContext {
 }
 func makeNewUser() *users.User {
 	newUser := &users.NewUser{
-		Email:        "test@test.com",
 		Password:     "test1234",
 		PasswordConf: "test1234",
 		UserName:     "test",
@@ -51,7 +50,6 @@ func TestUsersHandler(t *testing.T) {
 			"PATCH",
 			"",
 			&users.NewUser{
-				Email:        "test@test.com",
 				Password:     "test1234",
 				PasswordConf: "test1234",
 				UserName:     "test",
@@ -66,7 +64,6 @@ func TestUsersHandler(t *testing.T) {
 			"POST",
 			"text/plain",
 			&users.NewUser{
-				Email:        "test@test.com",
 				Password:     "test1234",
 				PasswordConf: "test1234",
 				UserName:     "test",
@@ -81,7 +78,6 @@ func TestUsersHandler(t *testing.T) {
 			"POST",
 			"application/json",
 			&users.NewUser{
-				Email:        "test@test.com",
 				Password:     "test1234",
 				PasswordConf: "test1234",
 				UserName:     "test",
@@ -96,7 +92,6 @@ func TestUsersHandler(t *testing.T) {
 			"POST",
 			"application/json",
 			&users.NewUser{
-				Email:        "test@test.com",
 				Password:     "test1234",
 				PasswordConf: "4321",
 				UserName:     "test",
@@ -111,7 +106,6 @@ func TestUsersHandler(t *testing.T) {
 			"POST",
 			"application/json",
 			&users.NewUser{
-				Email:        "test@test.com",
 				Password:     "test1234",
 				PasswordConf: "test1234",
 				UserName:     "test",
@@ -126,7 +120,6 @@ func TestUsersHandler(t *testing.T) {
 			"POST",
 			"application/json",
 			&users.NewUser{
-				Email:        "juan3674@naver.com",
 				Password:     "test1234",
 				PasswordConf: "test1234",
 				UserName:     "test",

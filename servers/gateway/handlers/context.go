@@ -1,8 +1,8 @@
 package handlers
 
 import (
-	"homework-juan3674-1532739/servers/gateway/models/users"
-	"homework-juan3674-1532739/servers/gateway/sessions"
+	"final-project-zco/servers/gateway/models/users"
+	"final-project-zco/servers/gateway/sessions"
 )
 
 //HandlerContext is a receiver on any of the HTTP
@@ -13,4 +13,5 @@ type HandlerContext struct {
 	SigningKey string
 	Session    sessions.Store
 	User       users.Store
+	Family     users.Store
 }
