@@ -8,7 +8,7 @@ export TLSCERT=/etc/letsencrypt/live/api.kangwoo.tech/fullchain.pem
 export TLSKEY=/etc/letsencrypt/live/api.kangwoo.tech/privkey.pem
 export MYSQL_ROOT_PASSWORD=$(openssl rand -base64 18)
 
-ssh -i ~/.ssh/myPriKey.pem ec2-user@52.33.171.173 "bash -s" << EOF
+ssh -i ~/.ssh/finalproject.pem ec2-user@52.33.171.173 "bash -s" << EOF
 docker network disconnect final redisserver
 docker network disconnect final mysqlserver
 docker network disconnect final mongo
@@ -51,13 +51,6 @@ docker run -d \
 rabbitmq:3-management
 
 sleep 20
-
-docker run -d \
---name task \
--e MONGOADDR=mongo:27017 \
--e RABBITADDR=rabbitsvr:5672 \
---network messages \
-kangwooc/task
 
 docker run -d \
 --name gateway \

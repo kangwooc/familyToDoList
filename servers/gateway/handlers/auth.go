@@ -85,7 +85,6 @@ func (context *HandlerContext) CreateHandler(w http.ResponseWriter, r *http.Requ
 			return
 		}
 		var numID int64
-		user := &users.User{}
 		if id != "me" {
 			numID, err = strconv.ParseInt(id, 10, 64)
 			if err != nil {
@@ -97,8 +96,8 @@ func (context *HandlerContext) CreateHandler(w http.ResponseWriter, r *http.Requ
 		}
 		admin := &users.Updates{Role: "Admin"}
 		// update the user role to be admin
-		user, err = context.User.Update(sessionState.User.ID, admin)
-		if err != nil {
+
+		if _, err = context.User.Update(numID, admin); err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
@@ -161,8 +160,7 @@ func (context *HandlerContext) JoinHandler(w http.ResponseWriter, r *http.Reques
 		}
 		admin := &users.Updates{Role: "Admin"}
 		// update the user role to be admin
-		user, err = context.User.Update(numID, admin)
-		if err != nil {
+		if _, err := context.User.Update(numID, admin); err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
