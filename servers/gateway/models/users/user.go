@@ -39,7 +39,6 @@ type NewUser struct {
 	UserName     string `json:"userName"`
 	FirstName    string `json:"firstName"`
 	LastName     string `json:"lastName"`
-	Role         string `json:"role"`
 }
 
 //Combined represents a new user signing up for an account
@@ -71,6 +70,12 @@ func (nu *NewUser) Validate() error {
 	if len(nu.UserName) == 0 || strings.Contains(nu.UserName, " ") {
 		return fmt.Errorf("UserName must be non-zero length and may not contain spaces")
 	}
+	if nu.FirstName == "" {
+		return fmt.Errorf("FirstName must be non-zero length")
+	}
+	if nu.LastName == "" {
+		return fmt.Errorf("LastName must be non-zero length")
+	}
 	return nil
 }
 
@@ -85,7 +90,7 @@ func (nu *NewUser) ToUser() (*User, error) {
 	user.UserName = nu.UserName
 	user.FirstName = nu.FirstName
 	user.LastName = nu.LastName
-	user.Role = nu.Role
+	user.Role = "default"
 	er := user.SetPassword(nu.Password)
 	if er != nil {
 		return nil, er
@@ -101,15 +106,6 @@ func (nu *NewUser) ToUser() (*User, error) {
 //space is put between the names. If both are missing,
 //this returns an empty string
 func (u *User) FullName() string {
-	if u.LastName == "" && u.FirstName == "" {
-		return ""
-	}
-	if u.FirstName == "" {
-		return u.LastName
-	}
-	if u.LastName == "" {
-		return u.FirstName
-	}
 	return u.FirstName + " " + u.LastName
 }
 

@@ -7,7 +7,7 @@ import (
 )
 
 const (
-	insert      = "insert into users (username,passhash,firstname,lastname,photourl) values ( ?,?,?,?,?,? )"
+	insert      = "insert into users (username,passhash,firstname,lastname,photourl) values ( ?,?,?,?,? )"
 	selectID    = `Select * From users Where id=?`
 	getUserName = `Select * From users Where username=?`
 	update      = "update users set role=? where id=?"
@@ -48,7 +48,7 @@ func (s *MySQLStore) Insert(user *User) (*User, error) {
 	return user, nil
 }
 
-//Insert inserts a family into the database, returning
+//InsertFam inserts a family into the database, returning
 //the inserted User with its ID field set to the
 //new primary key value
 func (s *MySQLStore) InsertFam(family *FamilyRoom) (*FamilyRoom, error) {

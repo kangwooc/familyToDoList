@@ -2,7 +2,6 @@ package users
 
 import (
 	"errors"
-	"homework-uwn73d8g/servers/gateway/indexes"
 )
 
 //ErrUserNotFound is returned when the user can't be found
@@ -30,7 +29,4 @@ type Store interface {
 
 	//Delete deletes the user with the given ID
 	Delete(id int64) error
-
-	//Load loads existing user accounts into the trie
-	Load(t *indexes.Trie) error
 }

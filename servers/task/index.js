@@ -15,7 +15,6 @@ var amqp = require('amqplib/callback_api');
 
 // Import the mongoose module
 var mongoose = require('mongoose');
-var bodyParser = require('body-parser');
 
 // Get environment variable
 const mongoaddr = process.env.MONGOADDR || ":27017";
@@ -60,7 +59,7 @@ function arrayRemove(arr, value) {
     });
 }
 
-app.get()
+app.use('tasks/:id')
 
 
 

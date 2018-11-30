@@ -95,17 +95,16 @@ func (context *HandlerContext) CreateHandler(w http.ResponseWriter, r *http.Requ
 		} else {
 			numID = sessionState.User.ID
 		}
-		admin := &Updates{Role: "Admin"}
+		admin := &users.Updates{Role: "Admin"}
 		// update the user role to be admin
-		user, err := context.User.Update(sessionState.User.ID, admin)
+		user, err = context.User.Update(sessionState.User.ID, admin)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
 
 		var family *users.FamilyRoom
-		err := json.NewDecoder(r.Body).Decode(&family)
-		if err != nil {
+		if err := json.NewDecoder(r.Body).Decode(&family); err != nil {
 			http.Error(w, "Decoding problem", http.StatusBadRequest)
 			return
 		}
@@ -151,7 +150,6 @@ func (context *HandlerContext) JoinHandler(w http.ResponseWriter, r *http.Reques
 			return
 		}
 		var numID int64
-		user := &users.User{}
 		if id != "me" {
 			numID, err = strconv.ParseInt(id, 10, 64)
 			if err != nil {
@@ -161,17 +159,16 @@ func (context *HandlerContext) JoinHandler(w http.ResponseWriter, r *http.Reques
 		} else {
 			numID = sessionState.User.ID
 		}
-		admin := &Updates{Role: "Admin"}
+		admin := &users.Updates{Role: "Admin"}
 		// update the user role to be admin
-		user, err := context.User.Update(sessionState.User.ID, admin)
+		user, err = context.User.Update(numID, admin)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
 
 		var family *users.FamilyRoom
-		err := json.NewDecoder(r.Body).Decode(&family)
-		if err != nil {
+		if err := json.NewDecoder(r.Body).Decode(&family); err != nil {
 			http.Error(w, "Decoding problem", http.StatusBadRequest)
 			return
 		}

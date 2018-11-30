@@ -1,3 +1,3 @@
 #!/bin/bash
 
-docker build kangwooc/task .
+docker build -t kangwooc/task .

@@ -46,7 +46,13 @@ func main() {
 		os.Stdout.WriteString("mysqlPassWord is not found")
 		os.Exit(1)
 	}
-	dsn := fmt.Sprintf("root:%s@tcp(mysqlserver:3306)/userdb", mysqlPassWord)
+
+	dbaddr := os.Getenv("DBADDR")
+	if len(dbaddr) == 0 {
+		dbaddr = "127.0.0.1:3306"
+	}
+
+	dsn := fmt.Sprintf("root:%s@tcp(%s)/userDB", mysqlPassWord, dbaddr)
 	db, err := sql.Open("mysql", dsn)
 	if err != nil {
 		fmt.Printf("error opening database: %v\n", err)
