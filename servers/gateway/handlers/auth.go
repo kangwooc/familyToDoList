@@ -180,8 +180,7 @@ func (context *HandlerContext) JoinHandler(w http.ResponseWriter, r *http.Reques
 
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusCreated)
-		err = json.NewEncoder(w).Encode(fam)
-		if err != nil {
+		if err = json.NewEncoder(w).Encode(fam); err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
@@ -207,7 +206,6 @@ func (context *HandlerContext) SpecificUserHandler(w http.ResponseWriter, r *htt
 			return
 		}
 		var numID int64
-		user := &users.User{}
 		if id != "me" {
 			numID, err = strconv.ParseInt(id, 10, 64)
 			if err != nil {
@@ -217,9 +215,9 @@ func (context *HandlerContext) SpecificUserHandler(w http.ResponseWriter, r *htt
 		} else {
 			numID = sessionState.User.ID
 		}
-		user, err = context.User.GetByID(numID)
+		user, err := context.User.GetByID(numID)
 		if err != nil {
-			http.Error(w, "This user is not found in the store", http.StatusNotFound)
+			http.Error(w, "This user do not found in the store", http.StatusNotFound)
 			return
 		}
 		//responding to the client
@@ -247,8 +245,7 @@ func (context *HandlerContext) SessionHandler(w http.ResponseWriter, r *http.Req
 			return
 		}
 		user := &users.Credentials{}
-		err := json.NewDecoder(r.Body).Decode(user)
-		if err != nil {
+		if err := json.NewDecoder(r.Body).Decode(user); err != nil {
 			http.Error(w, "Request body could not be parsed", http.StatusInternalServerError)
 			return
 		}
@@ -258,8 +255,7 @@ func (context *HandlerContext) SessionHandler(w http.ResponseWriter, r *http.Req
 			http.Error(w, fmt.Sprintf("Invalid credentials: %v", err), http.StatusUnauthorized)
 			return
 		}
-		err = profile.Authenticate(user.Password)
-		if err != nil {
+		if err = profile.Authenticate(user.Password); err != nil {
 			http.Error(w, fmt.Sprintf("Invalid credentials: %v", err), http.StatusUnauthorized)
 			return
 		}
@@ -268,15 +264,13 @@ func (context *HandlerContext) SessionHandler(w http.ResponseWriter, r *http.Req
 			SessionBegan: time.Now(),
 			User:         profile,
 		}
-		_, err = sessions.BeginSession(context.SigningKey, context.Session, newSessionState, w)
-		if err != nil {
+		if _, err = sessions.BeginSession(context.SigningKey, context.Session, newSessionState, w); err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusCreated)
-		err = json.NewEncoder(w).Encode(profile)
-		if err != nil {
+		if err = json.NewEncoder(w).Encode(profile); err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
