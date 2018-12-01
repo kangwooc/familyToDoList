@@ -65,6 +65,7 @@ func (context *HandlerContext) UsersHandler(w http.ResponseWriter, r *http.Reque
 }
 
 // CreateHandler create a family room
+// post "/create/:id"
 func (context *HandlerContext) CreateHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method == http.MethodPost {
 		header := r.Header.Get("Content-Type")
@@ -72,7 +73,7 @@ func (context *HandlerContext) CreateHandler(w http.ResponseWriter, r *http.Requ
 			http.Error(w, "Request body must be in JSON", http.StatusUnsupportedMediaType)
 			return
 		}
-		id := path.Base(r.URL.Path)
+		// id := path.Base(r.URL.Path)
 		split := strings.Split(r.URL.Path, "/")
 		if len(split) > 4 {
 			http.Error(w, "User must be authenticated", http.StatusUnauthorized)
@@ -84,16 +85,8 @@ func (context *HandlerContext) CreateHandler(w http.ResponseWriter, r *http.Requ
 			http.Error(w, "User must be authenticated", http.StatusUnauthorized)
 			return
 		}
-		var numID int64
-		if id != "me" {
-			numID, err = strconv.ParseInt(id, 10, 64)
-			if err != nil {
-				http.Error(w, err.Error(), http.StatusInternalServerError)
-				return
-			}
-		} else {
-			numID = sessionState.User.ID
-		}
+
+		numID := sessionState.User.ID
 		admin := &users.Updates{Role: "Admin"}
 		// update the user role to be admin
 
