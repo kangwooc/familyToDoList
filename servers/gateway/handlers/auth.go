@@ -5,7 +5,6 @@ import (
 	"final-project-zco/servers/gateway/models/users"
 	"final-project-zco/servers/gateway/sessions"
 	"fmt"
-	"log"
 	"net/http"
 	"path"
 	"strconv"
@@ -88,7 +87,6 @@ func (context *HandlerContext) CreateHandler(w http.ResponseWriter, r *http.Requ
 		}
 
 		numID := sessionState.User.ID
-		log.Printf("num id is %d", numID)
 		admin := &users.Updates{Role: "Admin"}
 		// update the user role to be admin
 
@@ -102,7 +100,6 @@ func (context *HandlerContext) CreateHandler(w http.ResponseWriter, r *http.Requ
 			http.Error(w, "Decoding problem", http.StatusBadRequest)
 			return
 		}
-		log.Printf("family is %v", family)
 
 		// insert into family table
 		fam, err := context.Family.InsertFam(family)
@@ -110,7 +107,7 @@ func (context *HandlerContext) CreateHandler(w http.ResponseWriter, r *http.Requ
 			http.Error(w, err.Error(), http.StatusBadRequest)
 			return
 		}
-
+		a, _ := context.User.GetByID(1)
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusCreated)
 		err = json.NewEncoder(w).Encode(fam)

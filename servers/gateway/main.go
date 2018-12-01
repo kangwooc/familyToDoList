@@ -69,6 +69,7 @@ func main() {
 		SigningKey: sessionkey,
 		Session:    redisStore,
 		User:       store,
+		Family:     store,
 	}
 	//rabbit := os.Getenv("RABBITADDR")
 

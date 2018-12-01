@@ -3,7 +3,6 @@ package users
 import (
 	"database/sql"
 	"fmt"
-	"log"
 	"strconv"
 )
 
@@ -53,24 +52,20 @@ func (s *MySQLStore) Insert(user *User) (*User, error) {
 //the inserted User with its ID field set to the
 //new primary key value
 func (s *MySQLStore) InsertFam(family *FamilyRoom) (*FamilyRoom, error) {
-	log.Printf("entered")
-	// results, err := s.db.Exec("insert into familyroom (roomname) values (?)", family.RoomName)
-	// if err != nil {
-	// 	return nil, fmt.Errorf("executing insert: %v", err)
-	// }
-	// log.Printf("enteredsss")
+	results, err := s.db.Exec("insert into familyroom (roomname) values (?)", family.RoomName)
+	if err != nil {
+		return nil, fmt.Errorf("executing insert: %v", err)
+	}
 
-	// //get the new DBMS-generated primary key value
-	// id, err := results.LastInsertId()
-	// if err != nil {
-	// 	return nil, fmt.Errorf("getting new ID: %v", err)
-	// }
-	// log.Printf("enteredqqq")
+	//get the new DBMS-generated primary key value
+	id, err := results.LastInsertId()
+	if err != nil {
+		return nil, fmt.Errorf("getting new ID: %v", err)
+	}
 
-	// //set the ID field of the struct so that callers
-	// //know what the new ID is
-	// family.ID = id
-	// log.Printf("toto %d", id)
+	//set the ID field of the struct so that callers
+	//know what the new ID is
+	family.ID = id
 	return family, nil
 }
 
@@ -99,12 +94,10 @@ func getByHelper(s *MySQLStore, identifier string, command string) (*User, error
 //if the requested user does not exist
 func (s *MySQLStore) GetByID(id int64) (*User, error) {
 	row := s.db.QueryRow(selectID, id)
-	log.Printf("this is id %d", id)
 	user := &User{}
 	if err := row.Scan(&user.ID, &user.UserName, &user.PassHash,
 		&user.FirstName, &user.LastName, &user.PhotoURL, &user.Role, &user.RoomName); err != nil {
 		if err == sql.ErrNoRows {
-			log.Printf("hereeee")
 			return nil, ErrUserNotFound
 		}
 		return nil, fmt.Errorf("scanning: %v", err)
