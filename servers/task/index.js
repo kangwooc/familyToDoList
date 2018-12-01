@@ -74,7 +74,7 @@ app.get('/tasks/:id', (req, res, next) => {
     let userJSON = req.get("X-User");
     if (userJSON) {
         let user = JSON.parse(userJSON);
-        Task.find({"familyID": id}).lean().exec((err, tasks) => {
+        Task.find({"familyID": id}).lean().exec().then((err, tasks) => {
             if (err) {
                 res.statusCode = 500;
                 res.send("Error while finding tasks");
@@ -156,7 +156,7 @@ app.patch("/tasks/:id", (res, req, next) => {
             return;
         }
         // Update the task and return 200
-        Task.findOne({"_id": id}).exec((err, task) => {
+        Task.findOne({"_id": id}).exec().then((err, task) => {
             if (err) {
                 res.statusCode = 500;
                 res.send("Error on execute finding family");
@@ -183,7 +183,7 @@ app.patch("/tasks/:id", (res, req, next) => {
 
 // + DELETE /tasks/:taskId
 //    + If a user is authenticated(admin), delete the task from his/her private task list and the public task list.
-app.delete("/task/:id", (res, req, next) => {
+app.delete("/tasks/:id", (res, req, next) => {
     // Check whether user is authenticated using X-user header
     let userJSON = req.get("X-User");
     // Check whether user is member or admin
@@ -205,7 +205,6 @@ app.delete("/task/:id", (res, req, next) => {
             }
             // Push to message queue
             buffer["type"] = "task-delete";
-            buffer["memberID"]
             taskchannel.sendToQueue(
                 "taskQueue",
                 Buffer.from(JSON.stringify(buffer)),
