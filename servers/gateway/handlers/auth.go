@@ -107,7 +107,6 @@ func (context *HandlerContext) CreateHandler(w http.ResponseWriter, r *http.Requ
 			http.Error(w, err.Error(), http.StatusBadRequest)
 			return
 		}
-		a, _ := context.User.GetByID(1)
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusCreated)
 		err = json.NewEncoder(w).Encode(fam)
