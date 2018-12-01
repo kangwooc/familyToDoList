@@ -109,7 +109,7 @@ func main() {
 	// go processMessages(handler, msgs)
 	mux := http.NewServeMux()
 	mux.HandleFunc("/users", ctx.UsersHandler)
-	mux.HandleFunc("/create/", ctx.CreateHandler)
+	mux.HandleFunc("/create", ctx.CreateHandler)
 	mux.HandleFunc("/join", ctx.JoinHandler)
 	mux.HandleFunc("/users/", ctx.SpecificUserHandler)
 	mux.HandleFunc("/sessions", ctx.SessionHandler)

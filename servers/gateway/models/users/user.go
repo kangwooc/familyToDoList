@@ -23,7 +23,8 @@ type User struct {
 	FirstName string `json:"firstname"`
 	LastName  string `json:"lastname"`
 	PhotoURL  string `json:"photourl"`
-	Role      string `json:"role"`
+	Role      string `json:"personrole"`
+	RoomName  string `json:"roomname"`
 }
 
 //Credentials represents user sign-in credentials

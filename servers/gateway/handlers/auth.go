@@ -5,6 +5,7 @@ import (
 	"final-project-zco/servers/gateway/models/users"
 	"final-project-zco/servers/gateway/sessions"
 	"fmt"
+	"log"
 	"net/http"
 	"path"
 	"strconv"
@@ -65,7 +66,7 @@ func (context *HandlerContext) UsersHandler(w http.ResponseWriter, r *http.Reque
 }
 
 // CreateHandler create a family room
-// post "/create/:id"
+// post "/create/"
 func (context *HandlerContext) CreateHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method == http.MethodPost {
 		header := r.Header.Get("Content-Type")
@@ -74,11 +75,11 @@ func (context *HandlerContext) CreateHandler(w http.ResponseWriter, r *http.Requ
 			return
 		}
 		// id := path.Base(r.URL.Path)
-		split := strings.Split(r.URL.Path, "/")
-		if len(split) > 4 {
-			http.Error(w, "User must be authenticated", http.StatusUnauthorized)
-			return
-		}
+		// split := strings.Split(r.URL.Path, "/")
+		// if len(split) > 4 {
+		// 	http.Error(w, "User must be authenticated", http.StatusUnauthorized)
+		// 	return
+		// }
 		sessionState := &SessionState{}
 		_, err := sessions.GetState(r, context.SigningKey, context.Session, sessionState)
 		if err != nil {
@@ -87,6 +88,7 @@ func (context *HandlerContext) CreateHandler(w http.ResponseWriter, r *http.Requ
 		}
 
 		numID := sessionState.User.ID
+		log.Printf("num id is %d", numID)
 		admin := &users.Updates{Role: "Admin"}
 		// update the user role to be admin
 
@@ -100,6 +102,7 @@ func (context *HandlerContext) CreateHandler(w http.ResponseWriter, r *http.Requ
 			http.Error(w, "Decoding problem", http.StatusBadRequest)
 			return
 		}
+		log.Printf("family is %v", family)
 
 		// insert into family table
 		fam, err := context.Family.InsertFam(family)

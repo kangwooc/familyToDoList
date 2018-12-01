@@ -3,14 +3,15 @@ package users
 import (
 	"database/sql"
 	"fmt"
+	"log"
 	"strconv"
 )
 
 const (
-	insert      = "insert into users (username,passhash,firstname,lastname,photourl) values ( ?,?,?,?,? )"
+	insert      = "insert into users (username,passhash,firstname,lastname,photourl,personrole,roomname) values ( ?,?,?,?,?,?,? )"
 	selectID    = `Select * From users Where id=?`
 	getUserName = `Select * From users Where username=?`
-	update      = "update users set role=? where id=?"
+	update      = "update users set personrole=? where id=?"
 	del         = "delete from users where id=?"
 )
 
@@ -33,7 +34,7 @@ func NewMySQLStore(db *sql.DB) *MySQLStore {
 //new primary key value
 func (s *MySQLStore) Insert(user *User) (*User, error) {
 	results, err := s.db.Exec(insert,
-		user.UserName, user.PassHash, user.FirstName, user.LastName, user.PhotoURL)
+		user.UserName, user.PassHash, user.FirstName, user.LastName, user.PhotoURL, user.Role, user.RoomName)
 	if err != nil {
 		return nil, fmt.Errorf("executing insert: %v", err)
 	}
@@ -52,18 +53,24 @@ func (s *MySQLStore) Insert(user *User) (*User, error) {
 //the inserted User with its ID field set to the
 //new primary key value
 func (s *MySQLStore) InsertFam(family *FamilyRoom) (*FamilyRoom, error) {
-	results, err := s.db.Exec("insert into familyroom (name) values (?)", family.RoomName)
-	if err != nil {
-		return nil, fmt.Errorf("executing insert: %v", err)
-	}
-	//get the new DBMS-generated primary key value
-	id, err := results.LastInsertId()
-	if err != nil {
-		return nil, fmt.Errorf("getting new ID: %v", err)
-	}
-	//set the ID field of the struct so that callers
-	//know what the new ID is
-	family.ID = id
+	log.Printf("entered")
+	// results, err := s.db.Exec("insert into familyroom (roomname) values (?)", family.RoomName)
+	// if err != nil {
+	// 	return nil, fmt.Errorf("executing insert: %v", err)
+	// }
+	// log.Printf("enteredsss")
+
+	// //get the new DBMS-generated primary key value
+	// id, err := results.LastInsertId()
+	// if err != nil {
+	// 	return nil, fmt.Errorf("getting new ID: %v", err)
+	// }
+	// log.Printf("enteredqqq")
+
+	// //set the ID field of the struct so that callers
+	// //know what the new ID is
+	// family.ID = id
+	// log.Printf("toto %d", id)
 	return family, nil
 }
 
@@ -79,7 +86,7 @@ func getByHelper(s *MySQLStore, identifier string, command string) (*User, error
 	}
 	user := &User{}
 	if err := row.Scan(&user.ID, &user.UserName, &user.PassHash,
-		&user.FirstName, &user.LastName, &user.PhotoURL); err != nil {
+		&user.FirstName, &user.LastName, &user.PhotoURL, &user.Role, &user.RoomName); err != nil {
 		if err == sql.ErrNoRows {
 			return nil, ErrUserNotFound
 		}
@@ -91,7 +98,18 @@ func getByHelper(s *MySQLStore, identifier string, command string) (*User, error
 //GetByID returns a specific user according to given id or ErrUserNotFound
 //if the requested user does not exist
 func (s *MySQLStore) GetByID(id int64) (*User, error) {
-	return getByHelper(s, selectID, string(id))
+	row := s.db.QueryRow(selectID, id)
+	log.Printf("this is id %d", id)
+	user := &User{}
+	if err := row.Scan(&user.ID, &user.UserName, &user.PassHash,
+		&user.FirstName, &user.LastName, &user.PhotoURL, &user.Role, &user.RoomName); err != nil {
+		if err == sql.ErrNoRows {
+			log.Printf("hereeee")
+			return nil, ErrUserNotFound
+		}
+		return nil, fmt.Errorf("scanning: %v", err)
+	}
+	return user, nil
 }
 
 //GetByUserName returns a specific user according to the given username, or ErrNotFound

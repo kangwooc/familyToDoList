@@ -1,14 +1,12 @@
-#!/bin/bash
 ./build.sh
+
+export TLSCERT=/tls/fullchain.pem
+export TLSKEY=/tls/privkey.pem
+export MYSQL_ROOT_PASSWORD=$(openssl rand -base64 18)
 
 docker push kangwooc/final
 docker push kangwooc/finaldb
-# set the environment variable of "TLSCERT", "TLSKEY" and "MYSQL_ROOT_PASSWORD"
-export TLSCERT=/etc/letsencrypt/live/api.kangwoo.tech/fullchain.pem
-export TLSKEY=/etc/letsencrypt/live/api.kangwoo.tech/privkey.pem
-export MYSQL_ROOT_PASSWORD=$(openssl rand -base64 18)
 
-ssh -i ~/.ssh/finalproject.pem ec2-user@52.33.171.173 "bash -s" << EOF
 docker network disconnect finalnetwork redisserver
 docker network disconnect finalnetwork mysqlserver
 docker network disconnect finalnetwork mongo
@@ -55,7 +53,7 @@ docker run -d \
 --name gateway \
 --network finalnetwork \
 -p 443:443 \
--v /etc/letsencrypt:/etc/letsencrypt:ro \
+-v $(pwd)/tls:/tls:ro \
 -e SESSIONKEY=$SESSIONKEY \
 -e TLSCERT=$TLSCERT \
 -e TLSKEY=$TLSKEY \
@@ -66,5 +64,3 @@ docker run -d \
 -e TASKADDR=task:80 \
 -e MYSQL_ROOT_PASSWORD=$MYSQL_ROOT_PASSWORD \
 kangwooc/final
-
-EOF

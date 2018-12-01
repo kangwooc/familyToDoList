@@ -1,7 +1,11 @@
---  created table to store instances of those User structs
 CREATE DATABASE IF NOT EXISTS userDB;
 
 USE userDB;
+
+create table if not exists familyroom (
+    id INT primary key auto_increment not NULL,
+    roomname varchar(128) not null unique
+);
 
 create table if not exists users (
     id INT primary key auto_increment not NULL,
@@ -11,8 +15,7 @@ create table if not exists users (
     lastname varchar(128) not null,
     photourl varchar(2083) not null,
     personrole VARCHAR(255),
-    roomname varchar(128),
-    FOREIGN KEY (roomname) REFERENCES familyroom(roomname)
+    roomname varchar(128)
 );
 
 create table if not exists userlogin (
@@ -20,9 +23,4 @@ create table if not exists userlogin (
     userid int not NULL,
     timesignin DATETIME NOT NULL,
     ipaddr VARCHAR(2083) NOT NULL
-);
-
-create table if not exists familyroom (
-    id INT primary key auto_increment not NULL,
-    roomname varchar(128) not null unique
 );
