@@ -33,8 +33,10 @@ func (ctx *HandlerContext) NewServiceProxy(addrs string) *httputil.ReverseProxy 
 			if _, err := sessions.GetState(r, ctx.SigningKey, ctx.Session, ss); err != nil {
 				log.Printf(fmt.Sprintf("session id error: %v", err.Error()))
 			}
-			userJSON, _ := json.Marshal(ss.User)
-			log.Printf("this is user json %v", string(userJSON))
+			u, _ := ctx.User.GetByID(ss.User.ID)
+			userJSON, _ := json.Marshal(u)
+
+			log.Printf("this is user json %v", userJSON)
 			r.Header.Set("X-User", string(userJSON))
 		},
 	}

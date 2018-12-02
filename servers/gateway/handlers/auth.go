@@ -128,7 +128,6 @@ func (context *HandlerContext) CreateHandler(w http.ResponseWriter, r *http.Requ
 
 // JoinHandler join a family room
 func (context *HandlerContext) JoinHandler(w http.ResponseWriter, r *http.Request) {
-	log.Println("heihhh")
 	if r.Method == http.MethodPatch { // what method
 		header := r.Header.Get("Content-Type")
 		if !strings.HasPrefix(header, "application/json") {
@@ -296,4 +295,9 @@ func (context *HandlerContext) SpecificSessionHandler(w http.ResponseWriter, r *
 		http.Error(w, "Current status method is not allowed", http.StatusMethodNotAllowed)
 		return
 	}
+}
+
+// delete member
+func (context *HandlerContext) DeleteHandler(w http.ResponseWriter, r *http.Request) {
+
 }
