@@ -42,15 +42,10 @@ type NewUser struct {
 	LastName     string `json:"lastName"`
 }
 
-//Combined represents a new user signing up for an account
-type Combined struct {
-	Role     string `json:"role"`
-	RoomName string `json:"roomname"`
-}
-
 //Updates represents allowed updates to a user profile
 type Updates struct {
-	Role string `json:"role"`
+	Role     string `json:"role"`
+	RoomName string `json:"roomname"`
 }
 
 //FamilyRoom represents family room table

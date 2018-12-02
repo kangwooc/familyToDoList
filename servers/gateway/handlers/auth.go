@@ -5,6 +5,7 @@ import (
 	"final-project-zco/servers/gateway/models/users"
 	"final-project-zco/servers/gateway/sessions"
 	"fmt"
+	"log"
 	"net/http"
 	"path"
 	"strconv"
@@ -87,27 +88,28 @@ func (context *HandlerContext) CreateHandler(w http.ResponseWriter, r *http.Requ
 		}
 
 		numID := sessionState.User.ID
-		admin := &users.Updates{Role: "Admin"}
-		// update the user role to be admin
-
-		if _, err = context.User.Update(numID, admin); err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
-		}
 
 		var family *users.FamilyRoom
 		if err := json.NewDecoder(r.Body).Decode(&family); err != nil {
 			http.Error(w, "Decoding problem", http.StatusBadRequest)
 			return
 		}
+		admin := &users.Updates{Role: "Admin", RoomName: family.RoomName}
+		// update the user role to be admin
 
+		added, err := context.User.UpdateToMember(numID, admin)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+
+		log.Printf("this is user yo %v", added)
 		// insert into family table
 		fam, err := context.Family.InsertFam(family)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusBadRequest)
 			return
 		}
-		a, _ := context.User.GetByID(1)
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusCreated)
 		err = json.NewEncoder(w).Encode(fam)
@@ -123,57 +125,48 @@ func (context *HandlerContext) CreateHandler(w http.ResponseWriter, r *http.Requ
 
 // JoinHandler join a family room
 func (context *HandlerContext) JoinHandler(w http.ResponseWriter, r *http.Request) {
-	if r.Method == http.MethodPost {
+	log.Println("heihhh")
+	if r.Method == http.MethodPatch { // what method
 		header := r.Header.Get("Content-Type")
 		if !strings.HasPrefix(header, "application/json") {
 			http.Error(w, "Request body must be in JSON", http.StatusUnsupportedMediaType)
 			return
 		}
-		id := path.Base(r.URL.Path)
-		split := strings.Split(r.URL.Path, "/")
-		if len(split) > 4 {
-			http.Error(w, "User must be authenticated", http.StatusUnauthorized)
-			return
-		}
+		// id := path.Base(r.URL.Path)
+		// split := strings.Split(r.URL.Path, "/")
+		// if len(split) > 4 {
+		// 	http.Error(w, "User must be authenticated", http.StatusUnauthorized)
+		// 	return
+		// }
 		sessionState := &SessionState{}
 		_, err := sessions.GetState(r, context.SigningKey, context.Session, sessionState)
 		if err != nil {
 			http.Error(w, "User must be authenticated", http.StatusUnauthorized)
 			return
 		}
-		var numID int64
-		if id != "me" {
-			numID, err = strconv.ParseInt(id, 10, 64)
-			if err != nil {
-				http.Error(w, err.Error(), http.StatusInternalServerError)
-				return
-			}
-		} else {
-			numID = sessionState.User.ID
-		}
-		admin := &users.Updates{Role: "Admin"}
-		// update the user role to be admin
-		if _, err := context.User.Update(numID, admin); err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
-		}
+		numID := sessionState.User.ID
 
-		var family *users.FamilyRoom
-		if err := json.NewDecoder(r.Body).Decode(&family); err != nil {
-			http.Error(w, "Decoding problem", http.StatusBadRequest)
-			return
-		}
-
-		// insert into family table
-		fam, err := context.Family.InsertFam(family)
-		if err != nil {
+		var update *users.Updates
+		// decode the entered family room name
+		if err := json.NewDecoder(r.Body).Decode(&update); err != nil {
 			http.Error(w, err.Error(), http.StatusBadRequest)
 			return
 		}
 
+		member := &users.Updates{Role: "Member", RoomName: update.RoomName}
+		// update the user role to be admin
+		if _, err := context.User.UpdateToMember(numID, member); err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+		added, err := context.User.GetByID(numID)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusCreated)
-		if err = json.NewEncoder(w).Encode(fam); err != nil {
+		if err = json.NewEncoder(w).Encode(added); err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
