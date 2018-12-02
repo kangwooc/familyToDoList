@@ -13,7 +13,7 @@ var Schema = mongoose.Schema;
 // https://stackoverflow.com/questions/10006218/which-schematype-in-mongoose-is-best-for-timestamp
 var taskSchema = new Schema({
     description: String,
-    point: Number,
+    point: {type: Number, default: 5},
     isProgress: {type: Boolean, default: false},
     isDone: {type: Boolean, default: false},
     FamilyID: Number

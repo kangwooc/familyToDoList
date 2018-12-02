@@ -50,7 +50,8 @@ type Combined struct {
 
 //Updates represents allowed updates to a user profile
 type Updates struct {
-	Role string `json:"role"`
+	Role     string `json:"role,omitempty"`
+	RoomName string `json:"room_name,omitempty"`
 }
 
 //FamilyRoom represents family room table

@@ -73,7 +73,7 @@ app.get('/tasks/:id', (req, res, next) => {
     // Check whether user is authenticated using X-user header
     let userJSON = req.get("X-User");
     if (userJSON) {
-        let user = JSON.parse(userJSON);
+        var id = req.params.id;
         Task.find({"familyID": id}).lean().exec().then((err, tasks) => {
             if (err) {
                 res.statusCode = 500;
@@ -93,14 +93,17 @@ app.get('/tasks/:id', (req, res, next) => {
 
 // POST /tasks/:familyID
 // If a user is authenticated(admin), post the new task in his/her private task list and the public task list. (called when an admin clicks create task in his/her private task page)
-app.post("/tasks/:id", (res, req, next) => {
+app.post("/tasks/:id", (req, res, next) => {
     // Check whether user is authenticated using X-user header
     let userJSON = req.get("X-User");
     // Check whether user is member or admin
     if (userJSON) {
         let user = JSON.parse(userJSON);
+        var id = req.params.id;
         var task;
-        switch (user.role) {
+        console.log(user);
+        console.log(user.personrole);
+        switch (user.personrole) {
             case "Admin":
                 // If a user is authenticated(admin), post the new task in his/her private task list and the public task list.
                 // (called when an admin clicks create task in his/her private task page)
@@ -135,6 +138,7 @@ app.post("/tasks/:id", (res, req, next) => {
         res.statusCode = 201;
         res.setHeader('Content-Type', 'application/json');
         res.end(JSON.stringify(task));
+        return;
     } else {
         res.statusCode = 401;
         res.send("no X-User header in the request");
@@ -144,13 +148,14 @@ app.post("/tasks/:id", (res, req, next) => {
 
 // PATCH /tasks/:taskid
 //   + If a user is authenticated(admin), update the task in his/her private task list and the public task list. (called when an admin clicks update in his/her private task page)
-app.patch("/tasks/:id", (res, req, next) => {
+app.patch("/tasks/:id", (req, res, next) => {
     // Check whether user is authenticated using X-user header
     let userJSON = req.get("X-User");
     // Check whether user is member or admin
     if (userJSON) {
         let user = JSON.parse(userJSON);
-        if (user.role != "Admin") {
+        var id = req.params.id;
+        if (user.personrole != "Admin") {
             res.statusCode = 401;
             res.send("not proper role in the request");
             return;
@@ -171,6 +176,9 @@ app.patch("/tasks/:id", (res, req, next) => {
                 Buffer.from(JSON.stringify(buffer)),
                 {persistent: true}
             );
+            res.statusCode = 200;
+            res.setHeader('Content-Type', 'application/json');
+            res.end(JSON.stringify(task));
         });
     } else {
         // If not return 401.
@@ -183,7 +191,7 @@ app.patch("/tasks/:id", (res, req, next) => {
 
 // + DELETE /tasks/:taskId
 //    + If a user is authenticated(admin), delete the task from his/her private task list and the public task list.
-app.delete("/tasks/:id", (res, req, next) => {
+app.delete("/tasks/:id", (req, res, next) => {
     // Check whether user is authenticated using X-user header
     let userJSON = req.get("X-User");
     // Check whether user is member or admin
@@ -191,7 +199,7 @@ app.delete("/tasks/:id", (res, req, next) => {
         let user = JSON.parse(userJSON);
         // If a user is authenticated(admin), delete the task from his/her private task list and the public task list.
         // If not return 401.
-        if (user.role != "Admin") {
+        if (user.personrole != "Admin") {
             res.statusCode = 401;
             res.send("not proper role in the request");
             return;

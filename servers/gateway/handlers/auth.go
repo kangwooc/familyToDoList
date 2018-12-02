@@ -14,7 +14,7 @@ import (
 
 //UsersHandler handles requests for the "users" resource.
 //it will accept POST requests to create new user account
-// sign up
+// sign up => /users
 func (context *HandlerContext) UsersHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method == http.MethodPost {
 		header := r.Header.Get("Content-Type")
@@ -65,7 +65,7 @@ func (context *HandlerContext) UsersHandler(w http.ResponseWriter, r *http.Reque
 }
 
 // CreateHandler create a family room
-// post "/create/"
+// post "/create"
 func (context *HandlerContext) CreateHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method == http.MethodPost {
 		header := r.Header.Get("Content-Type")
@@ -87,14 +87,6 @@ func (context *HandlerContext) CreateHandler(w http.ResponseWriter, r *http.Requ
 		}
 
 		numID := sessionState.User.ID
-		admin := &users.Updates{Role: "Admin"}
-		// update the user role to be admin
-
-		if _, err = context.User.Update(numID, admin); err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
-		}
-
 		var family *users.FamilyRoom
 		if err := json.NewDecoder(r.Body).Decode(&family); err != nil {
 			http.Error(w, "Decoding problem", http.StatusBadRequest)
@@ -107,10 +99,16 @@ func (context *HandlerContext) CreateHandler(w http.ResponseWriter, r *http.Requ
 			http.Error(w, err.Error(), http.StatusBadRequest)
 			return
 		}
+		// update the user role to be admin
+		admin := &users.Updates{Role: "Admin", RoomName: family.RoomName}
+
+		if _, err = context.User.Update(numID, admin); err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusCreated)
-		err = json.NewEncoder(w).Encode(fam)
-		if err != nil {
+		if err = json.NewEncoder(w).Encode(fam); err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}

@@ -10,7 +10,7 @@ const (
 	insert      = "insert into users (username,passhash,firstname,lastname,photourl,personrole,roomname) values ( ?,?,?,?,?,?,? )"
 	selectID    = `Select * From users Where id=?`
 	getUserName = `Select * From users Where username=?`
-	update      = "update users set personrole=? where id=?"
+	update      = "update users set personrole=?, roomname=? where id=?"
 	del         = "delete from users where id=?"
 )
 
@@ -115,7 +115,7 @@ func (s *MySQLStore) GetByUserName(username string) (*User, error) {
 //and returns the newly-inserted User. It returns
 //nil and ErrUserNotFound if the task ID does not exist.
 func (s *MySQLStore) Update(id int64, updates *Updates) (*User, error) {
-	results, err := s.db.Exec(update, updates.Role, id)
+	results, err := s.db.Exec(update, updates.Role, updates.RoomName, id)
 	if err != nil {
 		return nil, fmt.Errorf("updating: %v", err)
 	}

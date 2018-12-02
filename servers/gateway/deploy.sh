@@ -3,6 +3,7 @@
 
 docker push kangwooc/final
 docker push kangwooc/finaldb
+docker push kangwooc/task
 # set the environment variable of "TLSCERT", "TLSKEY" and "MYSQL_ROOT_PASSWORD"
 export TLSCERT=/etc/letsencrypt/live/api.kangwoo.tech/fullchain.pem
 export TLSKEY=/etc/letsencrypt/live/api.kangwoo.tech/privkey.pem
@@ -28,6 +29,7 @@ docker network create finalnetwork
 
 docker pull kangwooc/finaldb
 docker pull kangwooc/final
+docker pull kangwooc/task
 
 docker run -d \
 --name redisserver \
