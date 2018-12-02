@@ -7,11 +7,12 @@ import (
 )
 
 const (
-	insert      = "insert into users (username,passhash,firstname,lastname,photourl,personrole,roomname) values ( ?,?,?,?,?,?,? )"
-	selectID    = `Select * From users Where id=?`
-	getUserName = `Select * From users Where username=?`
-	update      = "update users set personrole=? where id=?"
-	del         = "delete from users where id=?"
+	insert         = "insert into users (username,passhash,firstname,lastname,photourl,personrole,roomname) values ( ?,?,?,?,?,?,? )"
+	selectID       = `Select * From users Where id=?`
+	getUserName    = `Select * From users Where username=?`
+	update         = "update users set personrole=? where id=?"
+	updateToMember = "update users set personrole=?, roomname=? where id=?"
+	del            = "delete from users where id=?"
 )
 
 //MySQLStore represents a user.Store backed by MySQL
@@ -109,6 +110,24 @@ func (s *MySQLStore) GetByID(id int64) (*User, error) {
 //if the requested user does not exist
 func (s *MySQLStore) GetByUserName(username string) (*User, error) {
 	return getByHelper(s, getUserName, username)
+}
+
+func (s *MySQLStore) UpdateToMember(id int64, updates *Updates) (*User, error) {
+	results, err := s.db.Exec(updateToMember, updates.Role, updates.RoomName, id)
+	if err != nil {
+		return nil, fmt.Errorf("updating: %v", err)
+	}
+	affected, err := results.RowsAffected()
+	if err != nil {
+		return nil, fmt.Errorf("getting rows affected: %v", err)
+	}
+
+	//if no rows were affected, then the requested
+	//ID was not in the database
+	if affected == 0 {
+		return nil, ErrUserNotFound
+	}
+	return s.GetByID(id)
 }
 
 //Update updates a user to the given user ID

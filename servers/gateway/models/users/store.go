@@ -23,6 +23,8 @@ type Store interface {
 	//the newly-inserted User, complete with the DBMS-assigned ID
 	InsertFam(family *FamilyRoom) (*FamilyRoom, error)
 
+	UpdateToMember(id int64, updates *Updates) (*User, error)
+
 	//Update applies UserUpdates to the given user ID
 	//and returns the newly-updated user
 	Update(id int64, updates *Updates) (*User, error)
