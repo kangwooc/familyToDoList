@@ -116,7 +116,7 @@ func main() {
 	mux.HandleFunc("/users/", ctx.SpecificUserHandler)
 	mux.HandleFunc("/sessions", ctx.SessionHandler)
 	mux.HandleFunc("/sessions/", ctx.SpecificSessionHandler)
-	// mux.HandleFunc("/ws", ctx.WebSocketConnectionHandler)
+	mux.HandleFunc("/ws", ctx.ServeHTTP)
 	wrappedMux := handlers.NewCors(mux)
 	log.Printf("server is listening at %s...", addr)
 	log.Fatal(http.ListenAndServeTLS(addr, tlsCertPath, tlsKeyPath, wrappedMux))

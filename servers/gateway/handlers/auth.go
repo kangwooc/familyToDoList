@@ -95,13 +95,16 @@ func (context *HandlerContext) CreateHandler(w http.ResponseWriter, r *http.Requ
 		}
 		admin := &users.Updates{Role: "Admin", RoomName: family.RoomName}
 		// update the user role to be admin
-
 		added, err := context.User.UpdateToMember(numID, admin)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
-
+		err = added.ApplyUpdates(admin)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusBadRequest)
+			return
+		}
 		log.Printf("this is user yo %v", added)
 		// insert into family table
 		fam, err := context.Family.InsertFam(family)
@@ -157,9 +160,15 @@ func (context *HandlerContext) JoinHandler(w http.ResponseWriter, r *http.Reques
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
+
 		added, err := context.User.GetByID(numID)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+		err = added.ApplyUpdates(member)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusBadRequest)
 			return
 		}
 		w.Header().Set("Content-Type", "application/json")
