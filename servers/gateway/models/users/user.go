@@ -125,5 +125,6 @@ func (u *User) Authenticate(password string) error {
 //is returned if the updates are invalid
 func (u *User) ApplyUpdates(updates *Updates) error {
 	u.Role = updates.Role
+	u.RoomName = updates.RoomName
 	return nil
 }
