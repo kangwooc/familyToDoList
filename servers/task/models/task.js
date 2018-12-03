@@ -16,7 +16,8 @@ var taskSchema = new Schema({
     point: {type: Number, default: 5},
     isProgress: {type: Boolean, default: false},
     isDone: {type: Boolean, default: false},
-    FamilyID: Number
+    familyID: Number,
+    familyRoomName: String
 });
 // create a model for our task
 var Task = mongoose.model('Task', taskSchema);

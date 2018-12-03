@@ -74,7 +74,7 @@ app.get('/tasks/:id', (req, res, next) => {
     let userJSON = req.get("X-User");
     if (userJSON) {
         var id = req.params.id;
-        Task.find({"familyID": id}).lean().exec().then((err, tasks) => {
+        Task.find({"familyID": id}).lean().exec((err, tasks) => {
             if (err) {
                 res.statusCode = 500;
                 res.send("Error while finding tasks");
@@ -102,15 +102,15 @@ app.post("/tasks/:id", (req, res, next) => {
         var id = req.params.id;
         var task;
         console.log(user);
-        console.log(user.personrole);
         switch (user.personrole) {
             case "Admin":
                 // If a user is authenticated(admin), post the new task in his/her private task list and the public task list.
                 // (called when an admin clicks create task in his/her private task page)
+                console.log(req.body);
                 var task = new Task ({
-                    description: req.Body.description,
-                    point: req.Body.point,
-                    familyID: id
+                    description: req.body.description,
+                    familyID: id,
+                    familyRoomName: user.roomname
                 });
                 // Create new task and push to task table
                 task.save((err) => {
@@ -118,9 +118,17 @@ app.post("/tasks/:id", (req, res, next) => {
                         console.log(err);
                     }
                 });
+                Task.find({"familyID": id}).exec((err, tasks) =>{
+                    if (err) {
+                        res.statusCode = 500;
+                        res.send("Error while finding tasks");
+                        return;
+                    }
+                    buffer["tasks"] = tasks;
+                });
                 // message queue
                 buffer["type"] = "task-new";
-                buffer["tasks"] = tasks;
+                buffer["task"] = task;
                 // Push to message queue
                 taskchannel.sendToQueue(
                     "taskQueue",
@@ -161,14 +169,14 @@ app.patch("/tasks/:id", (req, res, next) => {
             return;
         }
         // Update the task and return 200
-        Task.findOne({"_id": id}).exec().then((err, task) => {
+        Task.findOne({"_id": id}).exec((err, task) => {
             if (err) {
                 res.statusCode = 500;
-                res.send("Error on execute finding family");
+                res.send("Error on execute finding task");
                 return;
             }
             // Push to message queue
-            task.description = req.Body.description;
+            task.description = req.body.description;
             buffer["type"] = "task-edit";
             buffer["task"] = task;
             taskchannel.sendToQueue(
@@ -189,23 +197,26 @@ app.patch("/tasks/:id", (req, res, next) => {
 });
 
 
-// + DELETE /tasks/:taskId
-//    + If a user is authenticated(admin), delete the task from his/her private task list and the public task list.
+// DELETE /tasks/:taskId
+// If a user is authenticated(admin), delete the task from his/her private task list
+// and the public task list.
 app.delete("/tasks/:id", (req, res, next) => {
     // Check whether user is authenticated using X-user header
     let userJSON = req.get("X-User");
     // Check whether user is member or admin
     if (userJSON) {
         let user = JSON.parse(userJSON);
-        // If a user is authenticated(admin), delete the task from his/her private task list and the public task list.
+        var id = req.params.id;
+        // If a user is authenticated(admin), 
+        // delete the task from his/her private task list and the public task list.
         // If not return 401.
         if (user.personrole != "Admin") {
             res.statusCode = 401;
             res.send("not proper role in the request");
             return;
         }
-        // Update the task and return 200
-        Task.delete({"_id": id}).exec((err, task) => {
+        // Delete the task and return 200
+        Task.deleteOne({"_id": id}).exec((err, task) => {
             if (err) {
                 res.statusCode = 500;
                 res.send("Error on execute finding family");

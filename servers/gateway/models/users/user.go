@@ -4,6 +4,7 @@ import (
 	"crypto/md5"
 	"encoding/hex"
 	"fmt"
+	"log"
 	"strings"
 
 	"golang.org/x/crypto/bcrypt"
@@ -126,5 +127,9 @@ func (u *User) Authenticate(password string) error {
 func (u *User) ApplyUpdates(updates *Updates) error {
 	u.Role = updates.Role
 	u.RoomName = updates.RoomName
+	log.Println("this is userrrrr %v", u)
+	log.Println("this is userrrrrole %v", u.Role)
+	log.Println("this is userrrrroom %v", u.RoomName)
+
 	return nil
 }
