@@ -51,7 +51,7 @@ func main() {
 	if len(dbaddr) == 0 {
 		dbaddr = "127.0.0.1:3306"
 	}
-
+	taskaddr := os.Getenv("TASKADDR")
 	dsn := fmt.Sprintf("root:%s@tcp(%s)/userDB", mysqlPassWord, dbaddr)
 	db, err := sql.Open("mysql", dsn)
 	if err != nil {
@@ -109,13 +109,16 @@ func main() {
 	failOnError(err, "Failed to register a consumer")
 	// go processMessages(handler, msgs)
 	mux := http.NewServeMux()
+	mux.Handle("/tasks/", ctx.NewServiceProxy(taskaddr))
 	mux.HandleFunc("/users", ctx.UsersHandler)
 	mux.HandleFunc("/create", ctx.CreateHandler)
 	mux.HandleFunc("/join", ctx.JoinHandler)
 	mux.HandleFunc("/users/", ctx.SpecificUserHandler)
 	mux.HandleFunc("/sessions", ctx.SessionHandler)
 	mux.HandleFunc("/sessions/", ctx.SpecificSessionHandler)
-	mux.HandleFunc("/ws", ctx.ServeHTTP)
+	mux.HandleFunc("/delete", ctx.DeleteHandler)
+
+	// mux.HandleFunc("/ws", ctx.ServeHTTP)
 	wrappedMux := handlers.NewCors(mux)
 	log.Printf("server is listening at %s...", addr)
 	log.Fatal(http.ListenAndServeTLS(addr, tlsCertPath, tlsKeyPath, wrappedMux))

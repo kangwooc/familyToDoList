@@ -65,8 +65,7 @@ func GetSessionID(r *http.Request, signingKey string) (SessionID, error) {
 //GetState extracts the SessionID from the request,
 //gets the associated state from the provided store into
 //the `sessionState` parameter, and returns the SessionID
-func GetState(r *http.Request, signingKey string, store Store,
-	sessionState interface{}) (SessionID, error) {
+func GetState(r *http.Request, signingKey string, store Store, sessionState interface{}) (SessionID, error) {
 	id, err := GetSessionID(r, signingKey)
 	if err != nil {
 		return InvalidSessionID, ErrStateNotFound

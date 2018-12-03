@@ -15,7 +15,7 @@ import (
 
 //UsersHandler handles requests for the "users" resource.
 //it will accept POST requests to create new user account
-// sign up
+// sign up => /users
 func (context *HandlerContext) UsersHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method == http.MethodPost {
 		header := r.Header.Get("Content-Type")
@@ -66,7 +66,7 @@ func (context *HandlerContext) UsersHandler(w http.ResponseWriter, r *http.Reque
 }
 
 // CreateHandler create a family room
-// post "/create/"
+// post "/create"
 func (context *HandlerContext) CreateHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method == http.MethodPost {
 		header := r.Header.Get("Content-Type")
@@ -81,14 +81,13 @@ func (context *HandlerContext) CreateHandler(w http.ResponseWriter, r *http.Requ
 		// 	return
 		// }
 		sessionState := &SessionState{}
-		_, err := sessions.GetState(r, context.SigningKey, context.Session, sessionState)
+		sid, err := sessions.GetState(r, context.SigningKey, context.Session, sessionState)
 		if err != nil {
 			http.Error(w, "User must be authenticated", http.StatusUnauthorized)
 			return
 		}
 
 		numID := sessionState.User.ID
-
 		var family *users.FamilyRoom
 		if err := json.NewDecoder(r.Body).Decode(&family); err != nil {
 			http.Error(w, "Decoding problem", http.StatusBadRequest)
@@ -101,8 +100,13 @@ func (context *HandlerContext) CreateHandler(w http.ResponseWriter, r *http.Requ
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
-		err = added.ApplyUpdates(admin)
-		if err != nil {
+		sessionState.User.Role = admin.Role
+		sessionState.User.RoomName = admin.RoomName
+		if err = context.Session.Save(sid, sessionState); err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+		if err = added.ApplyUpdates(admin); err != nil {
 			http.Error(w, err.Error(), http.StatusBadRequest)
 			return
 		}
@@ -115,8 +119,7 @@ func (context *HandlerContext) CreateHandler(w http.ResponseWriter, r *http.Requ
 		}
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusCreated)
-		err = json.NewEncoder(w).Encode(fam)
-		if err != nil {
+		if err = json.NewEncoder(w).Encode(fam); err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
@@ -141,7 +144,7 @@ func (context *HandlerContext) JoinHandler(w http.ResponseWriter, r *http.Reques
 		// 	return
 		// }
 		sessionState := &SessionState{}
-		_, err := sessions.GetState(r, context.SigningKey, context.Session, sessionState)
+		sid, err := sessions.GetState(r, context.SigningKey, context.Session, sessionState)
 		if err != nil {
 			http.Error(w, "User must be authenticated", http.StatusUnauthorized)
 			return
@@ -157,24 +160,25 @@ func (context *HandlerContext) JoinHandler(w http.ResponseWriter, r *http.Reques
 
 		member := &users.Updates{Role: "Member", RoomName: update.RoomName}
 		// update the user role to be admin
-		if _, err := context.User.UpdateToMember(numID, member); err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
-		}
-
-		added, err := context.User.GetByID(numID)
+		user, err := context.User.UpdateToMember(numID, member)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
-		err = added.ApplyUpdates(member)
+		sessionState.User.Role = member.Role
+		sessionState.User.RoomName = member.RoomName
+		if err = context.Session.Save(sid, sessionState); err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+		err = user.ApplyUpdates(member)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusBadRequest)
 			return
 		}
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusCreated)
-		if err = json.NewEncoder(w).Encode(added); err != nil {
+		if err = json.NewEncoder(w).Encode(user); err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
@@ -299,5 +303,61 @@ func (context *HandlerContext) SpecificSessionHandler(w http.ResponseWriter, r *
 
 // delete member
 func (context *HandlerContext) DeleteHandler(w http.ResponseWriter, r *http.Request) {
+	if r.Method == "DELETE" {
+		// get the member info
+		header := r.Header.Get("Content-Type")
+		if !strings.HasPrefix(header, "application/json") {
+			http.Error(w, "Request body must be in JSON", http.StatusUnsupportedMediaType)
+			return
+		}
 
+		sessionState := &SessionState{}
+		sid, err := sessions.GetState(r, context.SigningKey, context.Session, sessionState)
+		if err != nil {
+			http.Error(w, "User must be authenticated", http.StatusUnauthorized)
+			return
+		}
+
+		// check whether current user is an admin
+		if sessionState.User.Role != "Admin" {
+			log.Printf("rrrrole %v", sessionState.User.Role)
+			http.Error(w, "User must be admin to delete member", http.StatusUnauthorized)
+			return
+		}
+		// the member to delete
+		user := &users.User{}
+		if err := json.NewDecoder(r.Body).Decode(user); err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+		update := &users.Updates{Role: "Default", RoomName: ""}
+		u, err := context.User.UpdateToMember(user.ID, update)
+		if err != nil {
+			log.Printf("what is wrong", sessionState.User.Role)
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+		sessionState.User.Role = update.Role
+		sessionState.User.RoomName = update.RoomName
+		if err = context.Session.Save(sid, sessionState); err != nil {
+			log.Printf("what is wrong222", sessionState.User.Role)
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+		err = u.ApplyUpdates(update)
+		if err != nil {
+			log.Printf("what is wrofffng222", sessionState.User.Role)
+			http.Error(w, err.Error(), http.StatusBadRequest)
+			return
+		}
+		w.Header().Set("Content-Type", "text/plain")
+		w.WriteHeader(http.StatusOK)
+		if err = json.NewEncoder(w).Encode(u); err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+	} else {
+		http.Error(w, "Current status method is not allowed", http.StatusMethodNotAllowed)
+		return
+	}
 }

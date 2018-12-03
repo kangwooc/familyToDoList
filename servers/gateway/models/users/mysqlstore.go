@@ -134,7 +134,7 @@ func (s *MySQLStore) UpdateToMember(id int64, updates *Updates) (*User, error) {
 //and returns the newly-inserted User. It returns
 //nil and ErrUserNotFound if the task ID does not exist.
 func (s *MySQLStore) Update(id int64, updates *Updates) (*User, error) {
-	results, err := s.db.Exec(update, updates.Role, id)
+	results, err := s.db.Exec(update, updates.Role, updates.RoomName, id)
 	if err != nil {
 		return nil, fmt.Errorf("updating: %v", err)
 	}
