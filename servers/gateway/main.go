@@ -110,6 +110,7 @@ func main() {
 	// go processMessages(handler, msgs)
 	mux := http.NewServeMux()
 	mux.Handle("/tasks/", ctx.NewServiceProxy(taskaddr))
+
 	mux.HandleFunc("/users", ctx.UsersHandler)
 	mux.HandleFunc("/create", ctx.CreateHandler)
 	mux.HandleFunc("/join", ctx.JoinHandler)

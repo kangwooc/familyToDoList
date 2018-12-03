@@ -38,7 +38,9 @@ var taskchannel;
 var buffer = {
     "type": "",
     "task": {},
-    "tasks": []
+    "tasks": [],
+    "point": 0,
+    "User": {},
 };
 var Task = require('./models/task');
 //add JSON request body parsing middleware
@@ -155,7 +157,8 @@ app.post("/tasks/:id", (req, res, next) => {
 });
 
 // PATCH /tasks/:taskid
-//   + If a user is authenticated(admin), update the task in his/her private task list and the public task list. (called when an admin clicks update in his/her private task page)
+//  If a user is authenticated(admin), update the task in his/her private task list and the public task list. 
+// (called when an admin clicks update in his/her private task page)
 app.patch("/tasks/:id", (req, res, next) => {
     // Check whether user is authenticated using X-user header
     let userJSON = req.get("X-User");
@@ -193,7 +196,7 @@ app.patch("/tasks/:id", (req, res, next) => {
         res.statusCode = 401;
         res.send("no X-User header in the request");
         return;
-    } 
+    }
 });
 
 
@@ -224,6 +227,7 @@ app.delete("/tasks/:id", (req, res, next) => {
             }
             // Push to message queue
             buffer["type"] = "task-delete";
+            buffer["task"] = task;
             taskchannel.sendToQueue(
                 "taskQueue",
                 Buffer.from(JSON.stringify(buffer)),
@@ -238,12 +242,93 @@ app.delete("/tasks/:id", (req, res, next) => {
         res.send("no X-User header in the request");
         return;
     }
-    // Delete task
-    // If it doesn’t have in task, return 500.
-    // Push to message queue
-})
+});
 
+// POST /tasks/progress/:taskid
+// If a user is authenticated(member), add task for him/her private task list
+app.post('/tasks/progress/:id', (req, res, next) => {
+    // Check whether user is authenticated using X-user header
+    let userJSON = req.get("X-User");
+    if (userJSON) {
+        let user = JSON.parse(userJSON);
+        var id = req.params.id;
+        if (user.personrole != "Member") {
+            res.statusCode = 401;
+            res.send("not proper role in the request");
+            return;
+        }
+        Task.findOne({"_id": id}).exec((err, task) => {
+            if (err) {
+                res.statusCode = 500;
+                res.send("Error on execute finding family");
+                return;
+            }
+            // update the task
+            task.user = user;
+            task.isProgress = true;
+            // push to message queue
+            buffer["user"] = user;
+            buffer["task"] = task;
+            taskchannel.sendToQueue(
+                "taskQueue",
+                Buffer.from(JSON.stringify(buffer)),
+                {persistent: true}
+            );
+            res.statusCode = 200;
+            res.send("Progressing...");
+            return;
+        });
+    } else {
+        // If not return 401.
+        res.statusCode = 401;
+        res.send("no X-User header in the request");
+        return;
+    }
+});
 
+// POST /tasks/done/:taskid
+// If a user is authenticated(member) and finished his/her task, 
+// delete task for him/her private task list and update user's point
+app.post('/tasks/done/:id', (req, res, next) => {
+    // Check whether user is authenticated using X-user header
+    let userJSON = req.get("X-User");
+    if (userJSON) {
+        let user = JSON.parse(userJSON);
+        var id = req.params.id;
+        if (user.personrole != "Member") {
+            res.statusCode = 401;
+            res.send("not proper role in the request");
+            return;
+        }
+        Task.findOneA({"_id": id}).exec((err, task) => {
+            if (err) {
+                res.statusCode = 500;
+                res.send("Error on execute finding family");
+                return;
+            }
+            // update the task
+            task.user = user;
+            task.isProgress = true;
+            // push to message queue
+            buffer["user"] = user;
+            buffer["task"] = task;
+            buffer["point"] = task.point;
+            taskchannel.sendToQueue(
+                "taskQueue",
+                Buffer.from(JSON.stringify(buffer)),
+                {persistent: true}
+            );
+            res.statusCode = 200;
+            res.send("Done!");
+            return;
+        });
+    } else {
+        // If not return 401.
+        res.statusCode = 401;
+        res.send("no X-User header in the request");
+        return;
+    }
+});
 
 var rabbiturl = 'amqp://' + rabbitaddr;
 amqp.connect(rabbiturl, function (err, conn) {
