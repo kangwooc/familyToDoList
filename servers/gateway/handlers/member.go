@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"final-project-zco/servers/gateway/models/users"
 	"final-project-zco/servers/gateway/sessions"
+	"log"
 	"net/http"
 	"path"
 	"strconv"
@@ -72,7 +73,7 @@ func (context *HandlerContext) DeleteHandler(w http.ResponseWriter, r *http.Requ
 }
 
 // display all members for each room
-// get localhost/room/:id
+// get localhost/room/1
 func (context *HandlerContext) DisplayHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method == "GET" {
 		// get the member info
@@ -83,7 +84,7 @@ func (context *HandlerContext) DisplayHandler(w http.ResponseWriter, r *http.Req
 		}
 
 		sessionState := &SessionState{}
-		sid, err := sessions.GetState(r, context.SigningKey, context.Session, sessionState)
+		_, err := sessions.GetState(r, context.SigningKey, context.Session, sessionState)
 		if err != nil {
 			http.Error(w, "User must be authenticated", http.StatusUnauthorized)
 			return
@@ -102,42 +103,20 @@ func (context *HandlerContext) DisplayHandler(w http.ResponseWriter, r *http.Req
 		}
 		fam, err := context.Family.GetRoomName(room)
 		// once get the room name, get all the users in that room
-		context.User.GetByRoomName(fam.RoomName)
+		userArr, err := context.User.GetByRoomName(fam.RoomName)
+		if err := json.NewDecoder(r.Body).Decode(userArr); err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
 		// check whether current user is an admin
 		if sessionState.User.Role != "Admin" {
-			// log.Printf("rrrrole %v", sessionState.User.Role)
-			http.Error(w, "User must be admin to delete member", http.StatusUnauthorized)
+			log.Printf("rrrrole %v", sessionState.User.Role)
+			http.Error(w, "User must be admin to view all member", http.StatusUnauthorized)
 			return
 		}
-		// the member to delete
-		user := &users.User{}
-		if err := json.NewDecoder(r.Body).Decode(user); err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
-		}
-		update := &users.Updates{Role: "Default", RoomName: ""}
-		u, err := context.User.UpdateToMember(user.ID, update)
-		if err != nil {
-			// log.Printf("what is wrong", sessionState.User.Role)
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
-		}
-		sessionState.User.Role = update.Role
-		sessionState.User.RoomName = update.RoomName
-		if err = context.Session.Save(sid, sessionState); err != nil {
-			// log.Printf("what is wrong222", sessionState.User.Role)
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
-		}
-		err = u.ApplyUpdates(update)
-		if err != nil {
-			// log.Printf("what is wrofffng222", sessionState.User.Role)
-			http.Error(w, err.Error(), http.StatusBadRequest)
-			return
-		}
-		w.Header().Set("Content-Type", "text/plain")
+		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
-		if err = json.NewEncoder(w).Encode(u); err != nil {
+		if err = json.NewEncoder(w).Encode(userArr); err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}

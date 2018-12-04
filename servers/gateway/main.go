@@ -121,6 +121,7 @@ func main() {
 	mux.HandleFunc("/sessions", ctx.SessionHandler)
 	mux.HandleFunc("/sessions/", ctx.SpecificSessionHandler)
 	mux.HandleFunc("/delete", ctx.DeleteHandler)
+	mux.HandleFunc("/memberlist/", ctx.DisplayHandler)
 
 	// mux.HandleFunc("/ws", ctx.ServeHTTP)
 	wrappedMux := handlers.NewCors(mux)
