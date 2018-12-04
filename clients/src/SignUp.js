@@ -15,15 +15,43 @@ export default class SignUpView extends React.Component {
         }
     }
 
-    // componentWillMount() {
-    //     let auth = window.localStorage.getItem('auth')
-    //     if (auth !== null ) {
-    //         this.props.history.push({pathname: '/users/me'})
-    //     }
-    // }
+    componentWillMount() {
+        let auth = window.localStorage.getItem('auth')
+        if (auth !== null ) {
+            console.log("auth is not null")
+            console.log(auth)
+        }
+    }
 
     handleSignUp() {
-
+        fetch("https://127.0.0.1:443/v1/users", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+	            "Password": this.state.password,     
+	            "PasswordConf": this.state.passwordConfirm,
+	            "UserName": this.state.userName,    
+	            "FirstName": this.state.firstName,   
+	            "LastName": this.state.lastName     
+            }),
+        }).then(res => {
+            if (!res.ok) { 
+                throw Error(res.statusText + " " + res.status);
+            }
+            localStorage.setItem("auth", res.headers.get("Authorization"))
+            return res.json()
+        }).then(data => {
+            console.log(data)
+            // this.setState({id: data.id})
+            // this.props.history.push({pathname: '/deepSign'})
+        }).catch(function(error) {
+            let errorType = document.createElement("p")
+            let errorMessage = document.createTextNode("Error to save your data " + error)
+            errorType.appendChild(errorMessage)
+            document.getElementById("result").appendChild(errorType)
+        })
     }
 
     render() {
