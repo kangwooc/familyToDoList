@@ -10,7 +10,6 @@ import (
 )
 
 //fn ln id photourl
-
 // delete member
 func (context *HandlerContext) DeleteHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method == "DELETE" {
