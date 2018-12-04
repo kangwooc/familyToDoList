@@ -31,7 +31,11 @@ func (context *HandlerContext) JoinHandler(w http.ResponseWriter, r *http.Reques
 			return
 		}
 		numID := sessionState.User.ID
-
+		// if admin, no allowed to join
+		if sessionState.User.Role == "Admin" {
+			http.Error(w, "Admin can not join other room", http.StatusBadRequest)
+			return
+		}
 		var update *users.Updates
 		// decode the entered family room name
 		if err := json.NewDecoder(r.Body).Decode(&update); err != nil {
@@ -39,7 +43,7 @@ func (context *HandlerContext) JoinHandler(w http.ResponseWriter, r *http.Reques
 			return
 		}
 
-		member := &users.Updates{RoomName: update.RoomName, Role: update.Role}
+		member := &users.Updates{RoomName: update.RoomName, Role: "Waiting"}
 		// update the user role to be admin
 		log.Printf("this is qqq id %d", numID)
 		added, err := context.User.Update(numID, member)
@@ -149,13 +153,13 @@ func (context *HandlerContext) AcceptRequest(w http.ResponseWriter, r *http.Requ
 			http.Error(w, "Decoding problem", http.StatusBadRequest)
 			return
 		}
-		up := &users.Updates{Role: accept.Role, RoomName: accept.RoomName}
+		up := &users.Updates{Role: "Member", RoomName: accept.RoomName}
 		added, err := context.User.UpdateToMember(accept.MemberID, up)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusBadRequest)
 			return
 		}
-		sessionState.User.Role = accept.Role
+		sessionState.User.Role = "Member"
 		sessionState.User.RoomName = accept.RoomName
 		if err = context.Session.Save(sid, sessionState); err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
