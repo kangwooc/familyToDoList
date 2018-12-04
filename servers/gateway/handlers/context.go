@@ -15,4 +15,5 @@ type HandlerContext struct {
 	User       users.Store
 	Family     users.Store
 	Notifier   Notifier
+	Request    map[int64][]*users.User
 }

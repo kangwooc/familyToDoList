@@ -32,9 +32,11 @@ func (ctx *HandlerContext) NewServiceProxy(addrs string) *httputil.ReverseProxy 
 				log.Printf(fmt.Sprintf("session id error: %v", err.Error()))
 				return
 			}
-			u, _ := ctx.User.GetByID(ss.User.ID)
-			userJSON, _ := json.Marshal(u)
-
+			userJSON, err := json.Marshal(ss.User)
+			if err != nil {
+				log.Printf(fmt.Sprintf("json marshal error: %v", err.Error()))
+				return
+			}
 			log.Printf("this is user json %v", userJSON)
 			r.Header.Del("X-User")
 			r.Header.Set("X-User", string(userJSON))

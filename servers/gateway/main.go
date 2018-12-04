@@ -70,6 +70,7 @@ func main() {
 		Session:    redisStore,
 		User:       store,
 		Family:     store,
+		Request:    make(map[int64][]*users.User, 0),
 	}
 	//rabbit := os.Getenv("RABBITADDR")
 
@@ -114,10 +115,14 @@ func main() {
 	mux.HandleFunc("/users", ctx.UsersHandler)
 	mux.HandleFunc("/create", ctx.CreateHandler)
 	mux.HandleFunc("/join", ctx.JoinHandler)
+	mux.HandleFunc("/receive", ctx.ReceiveHandler)
+	mux.HandleFunc("/accept", ctx.AcceptRequest)
 	mux.HandleFunc("/users/", ctx.SpecificUserHandler)
 	mux.HandleFunc("/sessions", ctx.SessionHandler)
 	mux.HandleFunc("/sessions/", ctx.SpecificSessionHandler)
-	mux.HandleFunc("/ws", ctx.ServeHTTP)
+	mux.HandleFunc("/delete", ctx.DeleteHandler)
+
+	// mux.HandleFunc("/ws", ctx.ServeHTTP)
 	wrappedMux := handlers.NewCors(mux)
 	log.Printf("server is listening at %s...", addr)
 	log.Fatal(http.ListenAndServeTLS(addr, tlsCertPath, tlsKeyPath, wrappedMux))

@@ -31,4 +31,6 @@ type Store interface {
 
 	//Delete deletes the user with the given ID
 	Delete(id int64) error
+
+	GetAdmin(roomname string, role string) (*User, error)
 }

@@ -45,7 +45,7 @@ type NewUser struct {
 
 //Updates represents allowed updates to a user profile
 type Updates struct {
-	Role     string `json:"role"`
+	Role     string `json:"personrole"`
 	RoomName string `json:"roomname"`
 }
 

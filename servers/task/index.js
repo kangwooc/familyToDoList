@@ -48,26 +48,6 @@ app.use(express.json());
 //add the request logging middleware
 app.use(morgan("dev"));
 
-// compare the json object
-// Reference:https://stackoverflow.com/questions/23826209/javascript-compare-the-structure-of-two-json-objects-while-ignoring-their-value
-function compareObjects(obj1, obj2){
-    var equal = true;
-    for (var i in obj1) {
-        if (!obj2.hasOwnProperty(i)) {
-            equal = false;
-            break;
-        }
-    }
-    return equal;
-}
-
-// arrayRemove is the function which removes the value in the array
-function arrayRemove(arr, value) {
-    console.log(arr);
-    return arr.filter(function (ele) {
-        return ele !== value;
-    });
-}
 // GET /tasks/:familyID
 // If a user is authenticated(member/admin of this family),
 // show the public to do list with all the in-progress tasks and undo tasks. (called to show the public task list)
@@ -104,11 +84,16 @@ app.post("/tasks/:id", (req, res, next) => {
         var id = req.params.id;
         var task;
         console.log(user);
+        // should return 400 if req.body.description is empty
+        if (req.body.description == "") {
+            res.statusCode = 400;
+            res.send("description is empty");
+            return;
+        }
         switch (user.personrole) {
             case "Admin":
                 // If a user is authenticated(admin), post the new task in his/her private task list and the public task list.
                 // (called when an admin clicks create task in his/her private task page)
-                console.log(req.body);
                 var task = new Task ({
                     description: req.body.description,
                     familyID: id,
@@ -166,9 +151,16 @@ app.patch("/tasks/:id", (req, res, next) => {
     if (userJSON) {
         let user = JSON.parse(userJSON);
         var id = req.params.id;
+        // if a user is not admin, the error should return 401
         if (user.personrole != "Admin") {
             res.statusCode = 401;
             res.send("not proper role in the request");
+            return;
+        }
+        // should return 400 if req.body.description is empty
+        if (req.body.description == "") {
+            res.statusCode = 400;
+            res.send("description is empty");
             return;
         }
         // Update the task and return 200
@@ -300,7 +292,7 @@ app.post('/tasks/done/:id', (req, res, next) => {
             res.send("not proper role in the request");
             return;
         }
-        Task.findOneA({"_id": id}).exec((err, task) => {
+        Task.findOneAndDelete({"_id": id}).exec((err, task) => {
             if (err) {
                 res.statusCode = 500;
                 res.send("Error on execute finding family");

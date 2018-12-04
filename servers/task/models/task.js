@@ -12,7 +12,7 @@ var Schema = mongoose.Schema;
 // https://stackoverflow.com/questions/17899750/how-can-i-generate-an-objectid-with-mongoose
 // https://stackoverflow.com/questions/10006218/which-schematype-in-mongoose-is-best-for-timestamp
 var taskSchema = new Schema({
-    description: String,
+    description: {type: String, unique: true},
     point: {type: Number, default: 5},
     isProgress: {type: Boolean, default: false},
     familyID: Number,
