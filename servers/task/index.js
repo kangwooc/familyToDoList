@@ -63,6 +63,7 @@ app.get('/tasks/:id', (req, res, next) => {
                 return;
             }
             res.statusCode = 200;
+            res.setHeader('Content-Type', 'application/json');
             res.end(JSON.stringify(tasks));
             return;
         });
@@ -85,7 +86,7 @@ app.post("/tasks/:id", (req, res, next) => {
         var task;
         console.log(user);
         // should return 400 if req.body.description is empty
-        if (req.body.description == "") {
+        if (req.body.description == null || req.body.description == "") {
             res.statusCode = 400;
             res.send("description is empty");
             return;
@@ -151,6 +152,7 @@ app.patch("/tasks/:id", (req, res, next) => {
     if (userJSON) {
         let user = JSON.parse(userJSON);
         var id = req.params.id;
+        console.log("Debug in patch //tasks/:id " + user);
         // if a user is not admin, the error should return 401
         if (user.personrole != "Admin") {
             res.statusCode = 401;
@@ -244,6 +246,7 @@ app.post('/tasks/progress/:id', (req, res, next) => {
     if (userJSON) {
         let user = JSON.parse(userJSON);
         var id = req.params.id;
+        console.log("Debug: post /tasks/progress/:id " + user);
         if (user.personrole != "Member") {
             res.statusCode = 401;
             res.send("not proper role in the request");
@@ -287,6 +290,7 @@ app.post('/tasks/done/:id', (req, res, next) => {
     if (userJSON) {
         let user = JSON.parse(userJSON);
         var id = req.params.id;
+        console.log("Debug: post /tasks/done/:id " + user);
         if (user.personrole != "Member") {
             res.statusCode = 401;
             res.send("not proper role in the request");
