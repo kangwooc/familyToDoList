@@ -137,7 +137,7 @@ func (context *HandlerContext) AcceptRequest(w http.ResponseWriter, r *http.Requ
 			return
 		}
 		sessionState := &SessionState{}
-		sid, err := sessions.GetState(r, context.SigningKey, context.Session, sessionState)
+		_, err := sessions.GetState(r, context.SigningKey, context.Session, sessionState)
 		if err != nil {
 			http.Error(w, "User must be authenticated", http.StatusUnauthorized)
 			return
@@ -148,6 +148,7 @@ func (context *HandlerContext) AcceptRequest(w http.ResponseWriter, r *http.Requ
 		}
 		var accept status
 		log.Printf("this is body yo %v", r.Body)
+
 		err = json.NewDecoder(r.Body).Decode(&accept)
 		if err != nil {
 			http.Error(w, "Decoding problem", http.StatusBadRequest)
@@ -159,12 +160,12 @@ func (context *HandlerContext) AcceptRequest(w http.ResponseWriter, r *http.Requ
 			http.Error(w, err.Error(), http.StatusBadRequest)
 			return
 		}
-		sessionState.added.Role = "Member"
-		sessionState.added.RoomName = accept.RoomName
-		if err = context.Session.Save(sid, sessionState); err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
-		}
+		// sessionState.added.Role = "Member"
+		// sessionState.added.RoomName = accept.RoomName
+		// if err = context.Session.Save(sid, sessionState); err != nil {
+		// 	http.Error(w, err.Error(), http.StatusInternalServerError)
+		// 	return
+		// }
 		if err = added.ApplyUpdates(up); err != nil {
 			http.Error(w, err.Error(), http.StatusBadRequest)
 			return
