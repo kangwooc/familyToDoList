@@ -75,12 +75,12 @@ func (ctx *HandlerContext) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 	//TODO: upgrade the connection to a WebScoket
 	//see https://godoc.org/github.com/gorilla/websocket
-	conn, err := upgrader.Upgrade(w, r, nil)
+	_, err = upgrader.Upgrade(w, r, nil)
 	if err != nil {
 		log.Println(err)
 		return
 	}
 	log.Println("adding client to notifier")
 	//TODO: add the new WebSocket connection to the Notifier
-	ctx.Notifier.AddClient(conn, sessionState.User.ID)
+	// ctx.Notifier.AddClient(conn, sessionState.User.ID)
 }

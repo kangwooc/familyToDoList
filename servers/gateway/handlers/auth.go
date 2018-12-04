@@ -129,64 +129,48 @@ func (context *HandlerContext) CreateHandler(w http.ResponseWriter, r *http.Requ
 	}
 }
 
-// JoinHandler join a family room
-func (context *HandlerContext) JoinHandler(w http.ResponseWriter, r *http.Request) {
-	if r.Method == http.MethodPatch { // what method
-		header := r.Header.Get("Content-Type")
-		if !strings.HasPrefix(header, "application/json") {
-			http.Error(w, "Request body must be in JSON", http.StatusUnsupportedMediaType)
-			return
-		}
-		// id := path.Base(r.URL.Path)
-		// split := strings.Split(r.URL.Path, "/")
-		// if len(split) > 4 {
-		// 	http.Error(w, "User must be authenticated", http.StatusUnauthorized)
-		// 	return
-		// }
-		sessionState := &SessionState{}
-		sid, err := sessions.GetState(r, context.SigningKey, context.Session, sessionState)
-		if err != nil {
-			http.Error(w, "User must be authenticated", http.StatusUnauthorized)
-			return
-		}
-		numID := sessionState.User.ID
+// // JoinHandler join a family room
+// func (context *HandlerContext) JoinHandler(w http.ResponseWriter, r *http.Request) {
+// 	log.Println("heihhh")
+// 	if r.Method == http.MethodPatch { // what method
+// 		header := r.Header.Get("Content-Type")
+// 		if !strings.HasPrefix(header, "application/json") {
+// 			http.Error(w, "Request body must be in JSON", http.StatusUnsupportedMediaType)
+// 			return
+// 		}
+// 		// id := path.Base(r.URL.Path)
+// 		// split := strings.Split(r.URL.Path, "/")
+// 		// if len(split) > 4 {
+// 		// 	http.Error(w, "User must be authenticated", http.StatusUnauthorized)
+// 		// 	return
+// 		// }
+// 		sessionState := &SessionState{}
+// 		_, err := sessions.GetState(r, context.SigningKey, context.Session, sessionState)
+// 		if err != nil {
+// 			http.Error(w, "User must be authenticated", http.StatusUnauthorized)
+// 			return
+// 		}
+// 		numID := sessionState.User.ID
 
-		var update *users.Updates
-		// decode the entered family room name
-		if err := json.NewDecoder(r.Body).Decode(&update); err != nil {
-			http.Error(w, err.Error(), http.StatusBadRequest)
-			return
-		}
+// 		var update *users.Updates
+// 		// decode the entered family room name
+// 		if err := json.NewDecoder(r.Body).Decode(&update); err != nil {
+// 			http.Error(w, err.Error(), http.StatusBadRequest)
+// 			return
+// 		}
 
-		member := &users.Updates{Role: "Member", RoomName: update.RoomName}
-		// update the user role to be admin
-		user, err := context.User.UpdateToMember(numID, member)
-		if err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
-		}
-		sessionState.User.Role = member.Role
-		sessionState.User.RoomName = member.RoomName
-		if err = context.Session.Save(sid, sessionState); err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
-		}
-		err = user.ApplyUpdates(member)
-		if err != nil {
-			http.Error(w, err.Error(), http.StatusBadRequest)
-			return
-		}
-		w.Header().Set("Content-Type", "application/json")
-		w.WriteHeader(http.StatusCreated)
-		if err = json.NewEncoder(w).Encode(user); err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
-		}
-	} else {
-		http.Error(w, "Current status method is not allowed", http.StatusMethodNotAllowed)
-		return
-	}
-}
+// 		member := &users.Updates{RoomName: update.RoomName}
+// 		// update the user role to be admin
+// 		if _, err := context.User.UpdateToMember(numID, member); err != nil {
+// 			http.Error(w, err.Error(), http.StatusInternalServerError)
+// 			return
+// 		}
+
+// 	} else {
+// 		http.Error(w, "Current status method is not allowed", http.StatusMethodNotAllowed)
+// 		return
+// 	}
+// }
 
 //SpecificUserHandler handles requests for a specific user.
 func (context *HandlerContext) SpecificUserHandler(w http.ResponseWriter, r *http.Request) {
@@ -295,67 +279,6 @@ func (context *HandlerContext) SpecificSessionHandler(w http.ResponseWriter, r *
 		w.Header().Set("Content-Type", "text/plain")
 		w.Write([]byte("Signed Out"))
 		w.WriteHeader(http.StatusOK)
-	} else {
-		http.Error(w, "Current status method is not allowed", http.StatusMethodNotAllowed)
-		return
-	}
-}
-
-// delete member
-func (context *HandlerContext) DeleteHandler(w http.ResponseWriter, r *http.Request) {
-	if r.Method == "DELETE" {
-		// get the member info
-		header := r.Header.Get("Content-Type")
-		if !strings.HasPrefix(header, "application/json") {
-			http.Error(w, "Request body must be in JSON", http.StatusUnsupportedMediaType)
-			return
-		}
-
-		sessionState := &SessionState{}
-		sid, err := sessions.GetState(r, context.SigningKey, context.Session, sessionState)
-		if err != nil {
-			http.Error(w, "User must be authenticated", http.StatusUnauthorized)
-			return
-		}
-
-		// check whether current user is an admin
-		if sessionState.User.Role != "Admin" {
-			log.Printf("rrrrole %v", sessionState.User.Role)
-			http.Error(w, "User must be admin to delete member", http.StatusUnauthorized)
-			return
-		}
-		// the member to delete
-		user := &users.User{}
-		if err := json.NewDecoder(r.Body).Decode(user); err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
-		}
-		update := &users.Updates{Role: "Default", RoomName: ""}
-		u, err := context.User.UpdateToMember(user.ID, update)
-		if err != nil {
-			log.Printf("what is wrong", sessionState.User.Role)
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
-		}
-		sessionState.User.Role = update.Role
-		sessionState.User.RoomName = update.RoomName
-		if err = context.Session.Save(sid, sessionState); err != nil {
-			log.Printf("what is wrong222", sessionState.User.Role)
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
-		}
-		err = u.ApplyUpdates(update)
-		if err != nil {
-			log.Printf("what is wrofffng222", sessionState.User.Role)
-			http.Error(w, err.Error(), http.StatusBadRequest)
-			return
-		}
-		w.Header().Set("Content-Type", "text/plain")
-		w.WriteHeader(http.StatusOK)
-		if err = json.NewEncoder(w).Encode(u); err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
-		}
 	} else {
 		http.Error(w, "Current status method is not allowed", http.StatusMethodNotAllowed)
 		return
