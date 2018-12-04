@@ -159,8 +159,8 @@ func (context *HandlerContext) AcceptRequest(w http.ResponseWriter, r *http.Requ
 			http.Error(w, err.Error(), http.StatusBadRequest)
 			return
 		}
-		sessionState.User.Role = "Member"
-		sessionState.User.RoomName = accept.RoomName
+		sessionState.added.Role = "Member"
+		sessionState.added.RoomName = accept.RoomName
 		if err = context.Session.Save(sid, sessionState); err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
