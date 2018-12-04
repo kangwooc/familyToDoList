@@ -25,6 +25,10 @@ type Store interface {
 
 	UpdateToMember(id int64, updates *Updates) (*User, error)
 
+	GetRoomName(id int64) (*FamilyRoom, error)
+
+	GetByRoomName(roomname string)
+
 	//Update applies UserUpdates to the given user ID
 	//and returns the newly-updated user
 	Update(id int64, updates *Updates) (*User, error)
