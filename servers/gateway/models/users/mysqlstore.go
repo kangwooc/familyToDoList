@@ -147,7 +147,7 @@ func (s *MySQLStore) UpdateToMember(id int64, updates *Updates) (*User, error) {
 }
 
 func (s *MySQLStore) GetRoomName(id int64) (*FamilyRoom, error) {
-	row := s.db.QueryRow("Select roomname From familyroom Where id=?", id)
+	row := s.db.QueryRow("Select * From familyroom Where id=?", id)
 
 	family := &FamilyRoom{}
 	if err := row.Scan(&family.ID, &family.RoomName); err != nil {
@@ -161,23 +161,23 @@ func (s *MySQLStore) GetRoomName(id int64) (*FamilyRoom, error) {
 
 func (s *MySQLStore) GetByRoomName(roomname string) ([]*User, error) {
 	var res []*User
-	rows, err := s.db.Query("Select * From users Where roomname=?", roomname)
+	rows, err := s.db.Query("Select * From users Where roomname=? And personrole=?", roomname, "Member")
 	if err != nil {
 		fmt.Println(err)
 		return nil, err
 	}
 	defer rows.Close()
-
 	for rows.Next() {
-		var user *User
+		user := &User{}
 		if err := rows.Scan(&user.ID, &user.UserName, &user.PassHash,
 			&user.FirstName, &user.LastName, &user.PhotoURL, &user.Role, &user.RoomName); err != nil {
 			if err == sql.ErrNoRows {
 				return nil, ErrUserNotFound
 			}
-			res = append(res, user)
 		}
+		res = append(res, user)
 	}
+
 	return res, nil
 }
 
