@@ -158,17 +158,18 @@ func (s *MySQLStore) GetRoomName(id int64) (*FamilyRoom, error) {
 	}
 	return family, nil
 }
+
 func (s *MySQLStore) GetByRoomName(roomname string) ([]*User, error) {
-	row, err := s.db.Query("Select * From users Where roomname=?", roomname)
-	user := &User{}
-	if err := row.Scan(&user.ID, &user.UserName, &user.PassHash,
-		&user.FirstName, &user.LastName, &user.PhotoURL, &user.Role, &user.RoomName); err != nil {
-		if err == sql.ErrNoRows {
-			return nil, ErrUserNotFound
-		}
-		return nil, fmt.Errorf("scanning: %v", err)
-	}
-	return user, nil
+	// row, err := s.db.Query("Select * From users Where roomname=?", roomname)
+	// user := &User{}
+	// if err := row.Scan(&user.ID, &user.UserName, &user.PassHash,
+	// 	&user.FirstName, &user.LastName, &user.PhotoURL, &user.Role, &user.RoomName); err != nil {
+	// 	if err == sql.ErrNoRows {
+	// 		return nil, ErrUserNotFound
+	// 	}
+	// 	return nil, fmt.Errorf("scanning: %v", err)
+	// }
+	return make([]*user, 0), nil
 }
 
 //Update updates a user to the given user ID

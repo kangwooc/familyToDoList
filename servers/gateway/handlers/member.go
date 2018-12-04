@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"final-project-zco/servers/gateway/models/users"
 	"final-project-zco/servers/gateway/sessions"
-	"log"
 	"net/http"
 	"path"
 	"strconv"
@@ -31,7 +30,6 @@ func (context *HandlerContext) DeleteHandler(w http.ResponseWriter, r *http.Requ
 
 		// check whether current user is an admin
 		if sessionState.User.Role != "Admin" {
-			log.Printf("rrrrole %v", sessionState.User.Role)
 			http.Error(w, "User must be admin to delete member", http.StatusUnauthorized)
 			return
 		}
@@ -44,20 +42,20 @@ func (context *HandlerContext) DeleteHandler(w http.ResponseWriter, r *http.Requ
 		update := &users.Updates{Role: "Default", RoomName: ""}
 		u, err := context.User.UpdateToMember(user.ID, update)
 		if err != nil {
-			log.Printf("what is wrong", sessionState.User.Role)
+			// log.Printf("Debug: sessionState User Role on Delete: ", sessionState.User.Role)
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
 		sessionState.User.Role = update.Role
 		sessionState.User.RoomName = update.RoomName
 		if err = context.Session.Save(sid, sessionState); err != nil {
-			log.Printf("what is wrong222", sessionState.User.Role)
+			// log.Printf("what is wrong222", sessionState.User.Role)
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
 		err = u.ApplyUpdates(update)
 		if err != nil {
-			log.Printf("what is wrofffng222", sessionState.User.Role)
+			// log.Printf("what is wrofffng222", sessionState.User.Role)
 			http.Error(w, err.Error(), http.StatusBadRequest)
 			return
 		}
@@ -107,7 +105,7 @@ func (context *HandlerContext) DisplayHandler(w http.ResponseWriter, r *http.Req
 		context.User.GetByRoomName(fam.RoomName)
 		// check whether current user is an admin
 		if sessionState.User.Role != "Admin" {
-			log.Printf("rrrrole %v", sessionState.User.Role)
+			// log.Printf("rrrrole %v", sessionState.User.Role)
 			http.Error(w, "User must be admin to delete member", http.StatusUnauthorized)
 			return
 		}
@@ -120,20 +118,20 @@ func (context *HandlerContext) DisplayHandler(w http.ResponseWriter, r *http.Req
 		update := &users.Updates{Role: "Default", RoomName: ""}
 		u, err := context.User.UpdateToMember(user.ID, update)
 		if err != nil {
-			log.Printf("what is wrong", sessionState.User.Role)
+			// log.Printf("what is wrong", sessionState.User.Role)
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
 		sessionState.User.Role = update.Role
 		sessionState.User.RoomName = update.RoomName
 		if err = context.Session.Save(sid, sessionState); err != nil {
-			log.Printf("what is wrong222", sessionState.User.Role)
+			// log.Printf("what is wrong222", sessionState.User.Role)
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
 		err = u.ApplyUpdates(update)
 		if err != nil {
-			log.Printf("what is wrofffng222", sessionState.User.Role)
+			// log.Printf("what is wrofffng222", sessionState.User.Role)
 			http.Error(w, err.Error(), http.StatusBadRequest)
 			return
 		}

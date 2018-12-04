@@ -5,7 +5,6 @@ import (
 	"final-project-zco/servers/gateway/models/users"
 	"final-project-zco/servers/gateway/sessions"
 	"fmt"
-	"log"
 	"net/http"
 	"path"
 	"strconv"
@@ -110,7 +109,7 @@ func (context *HandlerContext) CreateHandler(w http.ResponseWriter, r *http.Requ
 			http.Error(w, err.Error(), http.StatusBadRequest)
 			return
 		}
-		log.Printf("this is user yo %v", added)
+		// log.Printf("this is user yo %v", added)
 		// insert into family table
 		fam, err := context.Family.InsertFam(family)
 		if err != nil {
