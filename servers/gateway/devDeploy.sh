@@ -25,10 +25,6 @@ docker rm -f tasking
 
 docker network create finalnetwork
 
-docker pull kangwooc/finaldb
-docker pull kangwooc/final
-docker pull kangwooc/task
-
 docker run -d \
 --name redisserver \
 --network finalnetwork \

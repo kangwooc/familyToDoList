@@ -14,6 +14,6 @@ type HandlerContext struct {
 	Session    sessions.Store
 	User       users.Store
 	Family     users.Store
-	Notifier   Notifier
+	Socket   WebSocketsHandler
 	Request    map[int64][]*users.User
 }

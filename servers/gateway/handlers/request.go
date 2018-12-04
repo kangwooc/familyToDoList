@@ -41,10 +41,8 @@ func (context *HandlerContext) JoinHandler(w http.ResponseWriter, r *http.Reques
 
 		member := &users.Updates{RoomName: update.RoomName, Role: update.Role}
 		// update the user role to be admin
-		log.Printf("this is qqq id %d", numID)
 		added, err := context.User.Update(numID, member)
 		if err != nil {
-			log.Printf("yo wrong")
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
@@ -55,7 +53,6 @@ func (context *HandlerContext) JoinHandler(w http.ResponseWriter, r *http.Reques
 			return
 		}
 		if err = added.ApplyUpdates(member); err != nil {
-			log.Printf("yo wrong222")
 
 			http.Error(w, err.Error(), http.StatusBadRequest)
 			return
@@ -166,7 +163,8 @@ func (context *HandlerContext) AcceptRequest(w http.ResponseWriter, r *http.Requ
 			return
 		}
 		q, _ := context.User.GetByID(accept.MemberID)
-		log.Printf("mem id %v", q)
+		log.Printf("member %v", q)
+		log.Printf("admin %v", sessionState.User)
 		w.Header().Set("Content-Type", "text/plain")
 		w.Write([]byte("Request complete!"))
 	} else {
