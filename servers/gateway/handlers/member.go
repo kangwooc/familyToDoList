@@ -5,11 +5,12 @@ import (
 	"final-project-zco/servers/gateway/models/users"
 	"final-project-zco/servers/gateway/sessions"
 	"net/http"
+	"path"
+	"strconv"
 	"strings"
 )
 
 //fn ln id photourl
-
 // delete member
 func (context *HandlerContext) DeleteHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method == "DELETE" {
@@ -68,3 +69,55 @@ func (context *HandlerContext) DeleteHandler(w http.ResponseWriter, r *http.Requ
 }
 
 // display all members for each room
+// get localhost/room/1
+func (context *HandlerContext) DisplayHandler(w http.ResponseWriter, r *http.Request) {
+	if r.Method == "GET" {
+		// get the member info
+		header := r.Header.Get("Content-Type")
+		if !strings.HasPrefix(header, "application/json") {
+			http.Error(w, "Request body must be in JSON", http.StatusUnsupportedMediaType)
+			return
+		}
+
+		sessionState := &SessionState{}
+		_, err := sessions.GetState(r, context.SigningKey, context.Session, sessionState)
+		if err != nil {
+			http.Error(w, "User must be authenticated", http.StatusUnauthorized)
+			return
+		}
+		// if user is authenticated, get the room id
+		roomid := path.Base(r.URL.Path)
+		room, err := strconv.ParseInt(roomid, 10, 64)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+		split := strings.Split(r.URL.Path, "/")
+		if len(split) > 3 {
+			http.Error(w, "User must be authenticated", http.StatusUnauthorized)
+			return
+		}
+		fam, err := context.Family.GetRoomName(room)
+		// once get the room name, get all the users in that room
+		userArr, err := context.User.GetByRoomName(fam.RoomName)
+		if err := json.NewDecoder(r.Body).Decode(userArr); err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+		// check whether current user is an admin
+		if sessionState.User.Role != "Admin" {
+			log.Printf("rrrrole %v", sessionState.User.Role)
+			http.Error(w, "User must be admin to view all member", http.StatusUnauthorized)
+			return
+		}
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusOK)
+		if err = json.NewEncoder(w).Encode(userArr); err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+	} else {
+		http.Error(w, "Current status method is not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+}

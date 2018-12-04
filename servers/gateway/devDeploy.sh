@@ -4,10 +4,6 @@ export TLSCERT=/tls/fullchain.pem
 export TLSKEY=/tls/privkey.pem
 export MYSQL_ROOT_PASSWORD=$(openssl rand -base64 18)
 
-docker push kangwooc/final
-docker push kangwooc/finaldb
-docker push kangwooc/task
-
 docker network disconnect finalnetwork redisserver
 docker network disconnect finalnetwork mysqlserver
 docker network disconnect finalnetwork mongo

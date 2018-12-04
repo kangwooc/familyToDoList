@@ -111,6 +111,7 @@ func main() {
 	// go processMessages(handler, msgs)
 	mux := http.NewServeMux()
 	mux.Handle("/tasks/", ctx.NewServiceProxy(taskaddr))
+
 	mux.HandleFunc("/users", ctx.UsersHandler)
 	mux.HandleFunc("/create", ctx.CreateHandler)
 	mux.HandleFunc("/join", ctx.JoinHandler)
@@ -120,6 +121,7 @@ func main() {
 	mux.HandleFunc("/sessions", ctx.SessionHandler)
 	mux.HandleFunc("/sessions/", ctx.SpecificSessionHandler)
 	mux.HandleFunc("/delete", ctx.DeleteHandler)
+	mux.HandleFunc("/memberlist/", ctx.DisplayHandler)
 
 	// mux.HandleFunc("/ws", ctx.ServeHTTP)
 	wrappedMux := handlers.NewCors(mux)
