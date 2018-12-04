@@ -24,7 +24,7 @@ func (context *HandlerContext) DeleteHandler(w http.ResponseWriter, r *http.Requ
 		}
 
 		sessionState := &SessionState{}
-		sid, err := sessions.GetState(r, context.SigningKey, context.Session, sessionState)
+		_, err := sessions.GetState(r, context.SigningKey, context.Session, sessionState)
 		if err != nil {
 			http.Error(w, "User must be authenticated", http.StatusUnauthorized)
 			return
@@ -49,13 +49,7 @@ func (context *HandlerContext) DeleteHandler(w http.ResponseWriter, r *http.Requ
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
-		sessionState.User.Role = update.Role
-		sessionState.User.RoomName = update.RoomName
-		if err = context.Session.Save(sid, sessionState); err != nil {
-			log.Printf("what is wrong222", sessionState.User.Role)
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
-		}
+
 		err = u.ApplyUpdates(update)
 		if err != nil {
 			log.Printf("what is wrofffng222", sessionState.User.Role)
