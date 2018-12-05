@@ -24,16 +24,18 @@ export default class MemberView extends React.Component {
         .then((data) => {
             console.log(data);
             let user = data.map((info) => {
-                console.log(info.isProgress);
-                console.log(info.userid);
+                console.log(info);
+                let num = "" + info.userID
+                console.log(localStorage.getItem('userid') == num);
                 // check condition
-                if (info.isProgress && localStorage.getItem('userid') === info.userid) {
+                if (localStorage.getItem('userid') == num) {
+                    console.log("im here")
                 //render 
-                return ( 
+                return (
                     <div className="row">
                         <div className="username col-md-4">
                             <p>{info.description}</p>
-                            <button className="btn btn-warning my-2 my-sm-0 pull-right" onClick={() => this.handleDone(info._id)} disabled={!info.progress}>
+                            <button className="btn btn-warning my-2 my-sm-0 pull-right" onClick={() => this.handleDone(info._id)}>
                                 {this.state.done}
                             </button>
                         </div>
@@ -47,18 +49,21 @@ export default class MemberView extends React.Component {
         );
     }
     handleDone(id) {
+        
         fetch(`https://localhost:443/tasks/done/${id}`, {
             method: "POST",
             headers: {
-                "Authorization": localStorage.getItem("auth")
+                "Authorization": localStorage.getItem("auth"),
+                "Content-Type": "application/json"
             }
         }).then(res => {
             if (!res.ok) { 
                 throw Error(res.statusText + " " + res.status);
             }
-            return res.json()
-        }).then(data => {
-            console.log(data);
+
+        }).then(() => {
+            //re-render
+            window.location.reload();
         }).catch(function(error) {
             alert()
         })

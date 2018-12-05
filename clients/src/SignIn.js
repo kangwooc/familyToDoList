@@ -43,6 +43,7 @@ export default class SignInView extends React.Component {
             if (data.personrole == "Admin" || data.personrole == "Member") {
                 this.props.history.push({pathname: '/main/' + data.roomname})
                 localStorage.setItem("roomid", data.roomname);
+                localStorage.setItem("userid", data.id);
             } else {
                 this.props.history.push({pathname: '/deepSign'})
             }
