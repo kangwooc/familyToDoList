@@ -17,8 +17,22 @@ var taskSchema = new Schema({
     isProgress: {type: Boolean, default: false},
     familyID: Number,
     familyRoomName: String,
-    user: Object
+    userID: Number
 });
+// function for update task
+// https://stackoverflow.com/questions/16882938/how-to-check-if-that-data-already-exist-in-the-database-during-update-mongoose
+taskSchema.statics.addTask = function(task, cb) {
+    Task.find({description : task.description}).exec(function(err, docs) {
+        if (docs.length) {
+            cb('documents exists already', null);
+        } else {
+            task.save(function (err) {
+                cb(err, docs);
+            });
+        }
+    });
+}
+
 // create a model for our task
 var Task = mongoose.model('Task', taskSchema);
 // make this available to our users in our Node applications

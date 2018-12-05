@@ -36,7 +36,7 @@ db.once('open', function callback () {
 var taskchannel;
 // message queue struct
 var buffer = {
-    "type": "",
+    "name": "",
     "task": {},
     "tasks": [],
     "point": 0,
@@ -57,6 +57,33 @@ app.get('/tasks/:id', (req, res, next) => {
     if (userJSON) {
         var id = req.params.id;
         Task.find({"familyID": id}).lean().exec((err, tasks) => {
+            if (err) {
+                res.statusCode = 500;
+                res.send("Error while finding tasks");
+                return;
+            }
+            res.statusCode = 200;
+            res.setHeader('Content-Type', 'application/json');
+            res.end(JSON.stringify(tasks));
+            return;
+        });
+    } else {
+        res.statusCode = 401;
+        res.send("no X-User header in the request");
+        return;
+    }
+});
+
+// GET /tasks/:familyID
+// If a user is authenticated(member/admin of this family),
+// show the public to do list with all the in-progress tasks and undo tasks.
+// (called to show the public task list)
+app.get('/tasks/:id', (req, res, next) => {
+    // Check whether user is authenticated using X-user header
+    let userJSON = req.get("X-User");
+    if (userJSON) {
+        var id = req.params.id;
+        Task.find( {"familyID": id}).lean().exec((err, tasks) => {
             if (err) {
                 res.statusCode = 500;
                 res.send("Error while finding tasks");
@@ -101,9 +128,11 @@ app.post("/tasks/:id", (req, res, next) => {
                     familyRoomName: user.roomname
                 });
                 // Create new task and push to task table
-                task.save((err) => {
+                Task.addTask(task, (err, task) => {
                     if (err) {
-                        console.log(err);
+                        res.statusCode = 400;
+                        res.end("duplicated document");
+                        return;
                     }
                 });
                 Task.find({"familyID": id}).exec((err, tasks) =>{
@@ -115,7 +144,7 @@ app.post("/tasks/:id", (req, res, next) => {
                     buffer["tasks"] = tasks;
                 });
                 // message queue
-                buffer["type"] = "task-new";
+                buffer["name"] = "task-new";
                 buffer["task"] = task;
                 // Push to message queue
                 taskchannel.sendToQueue(
@@ -123,6 +152,11 @@ app.post("/tasks/:id", (req, res, next) => {
                     Buffer.from(JSON.stringify(buffer)),
                     {persistent: true}
                 );
+                // Return 201 and application/json
+                res.statusCode = 201;
+                res.setHeader('Content-Type', 'application/json');
+                res.end(JSON.stringify(task));
+                return;
             break;
             default:
                 res.statusCode = 401;
@@ -130,11 +164,6 @@ app.post("/tasks/:id", (req, res, next) => {
                 return;  
             break;
         }
-        // Return 201 and application/json
-        res.statusCode = 201;
-        res.setHeader('Content-Type', 'application/json');
-        res.end(JSON.stringify(task));
-        return;
     } else {
         res.statusCode = 401;
         res.send("no X-User header in the request");
@@ -174,7 +203,7 @@ app.patch("/tasks/:id", (req, res, next) => {
             }
             // Push to message queue
             task.description = req.body.description;
-            buffer["type"] = "task-edit";
+            buffer["name"] = "task-edit";
             buffer["task"] = task;
             taskchannel.sendToQueue(
                 "taskQueue",
@@ -243,23 +272,28 @@ app.delete("/tasks/:id", (req, res, next) => {
 app.post('/tasks/progress/:id', (req, res, next) => {
     // Check whether user is authenticated using X-user header
     let userJSON = req.get("X-User");
+
     if (userJSON) {
         let user = JSON.parse(userJSON);
         var id = req.params.id;
         console.log("Debug: post /tasks/progress/:id " + user);
+        console.log("Debug: post /tasks/progress/:id " + user.personrole);
+        console.log("Debug: post /tasks/progress/:id " + id);
         if (user.personrole != "Member") {
             res.statusCode = 401;
             res.send("not proper role in the request");
             return;
         }
-        Task.findOne({"_id": id}).exec((err, task) => {
+        Task.find({_id: id}).exec((err, task) => {
             if (err) {
                 res.statusCode = 500;
                 res.send("Error on execute finding family");
                 return;
             }
+            console.log("Debug: post /tasks/progress/:id " + user);
+            console.log("Debug: post /tasks/progress/:id task: " + task);
             // update the task
-            task.user = user;
+            task.userID = user.id;
             task.isProgress = true;
             // push to message queue
             buffer["user"] = user;
@@ -270,8 +304,8 @@ app.post('/tasks/progress/:id', (req, res, next) => {
                 {persistent: true}
             );
             res.statusCode = 200;
-            res.send("Progressing...");
-            return;
+            res.setHeader('Content-Type', 'application/json');
+            res.send(JSON.stringify(task));
         });
     } else {
         // If not return 401.
@@ -282,7 +316,7 @@ app.post('/tasks/progress/:id', (req, res, next) => {
 });
 
 // POST /tasks/done/:taskid
-// If a user is authenticated(member) and finished his/her task, 
+// If a user is authenticated(member) and finished his/her task,
 // delete task for him/her private task list and update user's point
 app.post('/tasks/done/:id', (req, res, next) => {
     // Check whether user is authenticated using X-user header
@@ -303,12 +337,12 @@ app.post('/tasks/done/:id', (req, res, next) => {
                 return;
             }
             // update the task
-            task.user = user;
+            task.userID = user.id;
             task.isProgress = true;
             // push to message queue
             buffer["user"] = user;
             buffer["task"] = task;
-            buffer["point"] = task.point;
+            buffer["point"] = task.point; // increment point!
             taskchannel.sendToQueue(
                 "taskQueue",
                 Buffer.from(JSON.stringify(buffer)),

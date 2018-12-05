@@ -124,7 +124,16 @@ func (s *MySQLStore) GetAdmin(roomname string, role string) (*User, error) {
 //GetByUserName returns a specific user according to the given username, or ErrNotFound
 //if the requested user does not exist
 func (s *MySQLStore) GetByUserName(username string) (*User, error) {
-	return getByHelper(s, getUserName, username)
+	row := s.db.QueryRow(getUserName, username)
+	user := &User{}
+	if err := row.Scan(&user.ID, &user.UserName, &user.PassHash,
+		&user.FirstName, &user.LastName, &user.PhotoURL, &user.Role, &user.RoomName); err != nil {
+		if err == sql.ErrNoRows {
+			return nil, ErrUserNotFound
+		}
+		return nil, fmt.Errorf("scanning: %v", err)
+	}
+	return user, nil
 }
 
 //UpdateToMember updates member info

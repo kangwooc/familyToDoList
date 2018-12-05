@@ -103,9 +103,16 @@ func (context *HandlerContext) ReceiveHandler(w http.ResponseWriter, r *http.Req
 			http.Error(w, "User must be authenticated", http.StatusUnauthorized)
 			return
 		}
-		if sessionState.User.Role != "Admin" {
-			http.Error(w, "Admin only can get", http.StatusUnauthorized)
+		switch sessionState.User.Role {
+		case "Admin":
+			break
+		case "Waiting":
+			break
+		default:
+			http.Error(w, "Admin and Waiting can get", http.StatusUnauthorized)
 			return
+			break
+
 		}
 		numID := sessionState.User.ID
 		request, ok := context.Request[numID]
@@ -161,6 +168,7 @@ func (context *HandlerContext) AcceptRequest(w http.ResponseWriter, r *http.Requ
 			http.Error(w, err.Error(), http.StatusBadRequest)
 			return
 		}
+
 		q, _ := context.User.GetByID(accept.MemberID)
 		log.Printf("Debug: mem id %v", q)
 		w.Header().Set("Content-Type", "text/plain")
