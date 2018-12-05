@@ -91,9 +91,15 @@ app.post("/tasks/:roomname", (req, res, next) => {
         console.log("req.body.description: "+ req.body.description);
         console.log(roomname);
         // should return 400 if req.body.description is empty
+<<<<<<< HEAD
         if (req.body.description === "" || req.body.description === undefined) {
             res.statusCode = 400;
             res.end("description is empty");
+=======
+        if (req.body.description === null || req.body.description === "") {
+            res.statusCode = 400;
+            res.send("description is empty");
+>>>>>>> a971f45a957ee8c29703ad5bf694a4f0e09f99cf
             return;
         }
         switch (user.personrole) {
@@ -262,7 +268,11 @@ app.post('/tasks/progress/:id', (req, res, next) => {
             res.send("not proper role in the request");
             return;
         }
+<<<<<<< HEAD
         Task.find({_id: id}).exec((err, task) => {
+=======
+        Task.findByIdAndUpdate({_id: id}, {$set: {"userID": user.id, "isProgress": true}}, {$push: {"userID": user.id, "isProgress": true}}).exec((err, task) => {
+>>>>>>> a971f45a957ee8c29703ad5bf694a4f0e09f99cf
             if (err) {
                 res.statusCode = 500;
                 res.send("Error on execute finding family");
@@ -270,13 +280,20 @@ app.post('/tasks/progress/:id', (req, res, next) => {
             }
             console.log("Debug: post /tasks/progress/:id " + user);
             console.log("Debug: post /tasks/progress/:id task: " + task);
+<<<<<<< HEAD
             // update the task
             task.userID = user.id;
             task.isProgress = true;
+=======
+>>>>>>> a971f45a957ee8c29703ad5bf694a4f0e09f99cf
             // push to message queue
             buffer["name"] = "task-progress";
             buffer["user"] = user;
             buffer["task"] = task;
+<<<<<<< HEAD
+=======
+            console.log("Debug: post /tasks/progress/:id after task: " + task);
+>>>>>>> a971f45a957ee8c29703ad5bf694a4f0e09f99cf
             taskchannel.sendToQueue(
                 "taskQueue",
                 Buffer.from(JSON.stringify(buffer)),

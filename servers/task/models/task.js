@@ -15,7 +15,6 @@ var taskSchema = new Schema({
     description: {type: String, unique: true},
     point: {type: Number, default: 5},
     isProgress: {type: Boolean, default: false},
-    familyID: Number,
     familyRoomName: String,
     userID: Number
 });

@@ -152,11 +152,16 @@ func (context *HandlerContext) AcceptRequest(w http.ResponseWriter, r *http.Requ
 			return
 		}
 		var accept status
+<<<<<<< HEAD
 		if err := json.NewDecoder(r.Body).Decode(&accept); err != nil {
+=======
+		err = json.NewDecoder(r.Body).Decode(&accept)
+		if err != nil {
+>>>>>>> a971f45a957ee8c29703ad5bf694a4f0e09f99cf
 			http.Error(w, "Decoding problem", http.StatusBadRequest)
 			return
 		}
-		up := &users.Updates{Role: "Member", RoomName: accept.RoomName}
+		up := &users.Updates{Role: accept.Role, RoomName: accept.RoomName}
 		added, err := context.User.UpdateToMember(accept.MemberID, up)
 		log.Printf("Debug: Admin: ", sessionState.User)
 		if err != nil {

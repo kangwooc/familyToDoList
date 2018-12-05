@@ -154,6 +154,7 @@ func (s *MySQLStore) UpdateToMember(id int64, updates *Updates) (*User, error) {
 	//if no rows were affected, then the requested
 	//ID was not in the database
 	if affected == 0 {
+		log.Printf("member wrong")
 		return nil, ErrUserNotFound
 	}
 	return s.GetByID(id)

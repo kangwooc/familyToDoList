@@ -4,15 +4,25 @@ export default class MainView extends React.Component {
     constructor(props) {
         super(props);
         this.state = {
+<<<<<<< HEAD
             role: true,
             href: "/admin",
             sock: null,
             token: window.localStorage.getItem("auth")
+=======
+            // role: true,
+            href: "/admin",
+            data: null,
+            progress: "",
+            admin: true,
+            status: ""
+>>>>>>> a971f45a957ee8c29703ad5bf694a4f0e09f99cf
         }
         
     }
 
     componentWillMount() {
+<<<<<<< HEAD
         console.log("will mount" + localStorage.getItem("auth"))
         this.setState({ working: true });
         fetch(`https://localhost:443/tasks/${window.localStorage.getItem("roomid")}`, {
@@ -22,13 +32,44 @@ export default class MainView extends React.Component {
             },
             mode: 'cors',
             cache: 'default'
+=======
+        fetch(`https://localhost:443/tasks/${this.props.match.params.id}`, {
+            method: "GET",
+            headers: {
+                "Authorization": window.localStorage.getItem("auth")
+            }
+>>>>>>> a971f45a957ee8c29703ad5bf694a4f0e09f99cf
         }).then(res => {
             if (!res.ok) { 
                 throw Error(res.statusText + " " + res.status);
             }
             return res.json()
+<<<<<<< HEAD
         }).then(data =>{
             console.log(data)
+=======
+        }).then(data => {
+            console.log(data)
+            let users = data.map((info) => {
+                console.log(info.isProgress)
+                if (info.isProgress) {
+                    this.setState({progress: "Progressing"})
+                } else {
+                    this.setState({progress: "Not Assigned"})
+                }
+                return (
+                    <div className="row">
+                        <div className="username col-md-4">
+                            <p>{info.description}</p>
+                            <button className="btn btn-warning my-2 my-sm-0 pull-right" onClick={() => this.handleProgress(info._id)} disabled={info.progress}>
+                                {this.state.progress}
+                            </button>
+                        </div>
+                    </div>
+                );
+            });
+            this.setState({data: users});
+>>>>>>> a971f45a957ee8c29703ad5bf694a4f0e09f99cf
         }).catch(error => {
                 alert(error)
                 localStorage.clear()
@@ -36,6 +77,7 @@ export default class MainView extends React.Component {
             }        
         )
     }
+<<<<<<< HEAD
     componentDidMount() {
         // let sock;
         // document.addEventListener("DOMContentLoaded", (event) => {
@@ -61,7 +103,42 @@ export default class MainView extends React.Component {
     }
 
     handleSignOut() {
+=======
 
+    handleProgress(id) {
+        fetch(`https://localhost:443/tasks/progress/${id}`, {
+            method: "POST",
+            headers: {
+                "Authorization": localStorage.getItem("auth")
+            }
+        }).then(res => {
+            if (!res.ok) { 
+                throw Error(res.statusText + " " + res.status);
+            }
+            return res.json()
+        }).then(data => {
+            console.log(data)
+        }).catch(function(error) {
+            alert()
+        })
+    }
+>>>>>>> a971f45a957ee8c29703ad5bf694a4f0e09f99cf
+
+    handleSignOut() {
+        fetch("https://localhost:443/sessions/mine", {
+            method: "DELETE",
+            headers: {
+                "Authorization": localStorage.getItem("auth")
+            }
+        }).then(res => {
+            if (!res.ok) { 
+                throw Error(res.statusText + " " + res.status);
+            }
+            localStorage.clear()
+            this.props.history.push({pathname: '/signin'})
+        }).catch(function(error) {
+            localStorage.clear()
+        })   
     }
 
     render() {
@@ -86,11 +163,8 @@ export default class MainView extends React.Component {
                 </nav>
                 <div>
                     <h3 className="p-3">Current Task List</h3>
-                    <button className="btn btn-warning my-2 my-sm-0 pull-right"
-                        onClick={() => this.setState({href: '/member'})}>
-                        Sign Out
-                    </button>
                 </div>
+                {this.state.data}
             </div>
         );
     }
