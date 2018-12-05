@@ -25,6 +25,7 @@ type User struct {
 	PhotoURL  string `json:"photourl"`
 	Role      string `json:"personrole"`
 	RoomName  string `json:"roomname"`
+	Score     int    `json:"score"`
 }
 
 //Credentials represents user sign-in credentials
@@ -46,6 +47,7 @@ type NewUser struct {
 type Updates struct {
 	Role     string `json:"personrole"`
 	RoomName string `json:"roomname"`
+	Score    int    `json:"score"`
 }
 
 //FamilyRoom represents family room table
@@ -87,6 +89,7 @@ func (nu *NewUser) ToUser() (*User, error) {
 	user.FirstName = nu.FirstName
 	user.LastName = nu.LastName
 	user.Role = "default"
+	user.Score = 0
 	er := user.SetPassword(nu.Password)
 	if er != nil {
 		return nil, er
@@ -126,9 +129,6 @@ func (u *User) Authenticate(password string) error {
 func (u *User) ApplyUpdates(updates *Updates) error {
 	u.Role = updates.Role
 	u.RoomName = updates.RoomName
-	// log.Println("this is userrrrr %v", u)
-	// log.Println("this is userrrrrole %v", u.Role)
-	// log.Println("this is userrrrroom %v", u.RoomName)
-
+	u.Score = updates.Score
 	return nil
 }

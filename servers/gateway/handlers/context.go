@@ -14,6 +14,5 @@ type HandlerContext struct {
 	Session    sessions.Store
 	User       users.Store
 	Family     users.Store
-	Socket     *WebSocketsHandler
 	Request    map[int64][]*users.User
 }

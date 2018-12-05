@@ -73,7 +73,6 @@ func main() {
 		Session:    redisStore,
 		User:       store,
 		Family:     store,
-		Socket:     handlers.NewWebSocketsHandler(n),
 		Request:    make(map[int64][]*users.User, 0),
 	}
 	rabbit := os.Getenv("RABBITADDR")
@@ -153,7 +152,7 @@ func main() {
 	mux.HandleFunc("/delete", ctx.DeleteHandler)
 	mux.HandleFunc("/memberlist/", ctx.DisplayHandler)
 
-	// mux.HandleFunc("/ws", ctx.ServeHTTP)
+	mux.HandleFunc("/ws", handlers.NewWebSocketsHandler(n))
 	wrappedMux := handlers.NewCors(mux)
 	log.Printf("server is listening at %s...", addr)
 	log.Fatal(http.ListenAndServeTLS(addr, tlsCertPath, tlsKeyPath, wrappedMux))

@@ -1,26 +1,31 @@
 import React, { Component } from 'react';
-import logo from './logo.svg';
-import './App.css';
-
+import { BrowserRouter as Router, Switch, Redirect, Route } from "react-router-dom"
+import { ROUTES } from "./constants";
+import SignInView from "./SignIn";
+import SignUpView from "./SignUp";
+import DeepSignUpView from './DeepSignUp';
+import NewFamView from "./NewFam"
+import JoinView from "./Join"
+import MainView from './Main';
+import MemberView from './Member';
+import AdminView from './Admin';
+import AddTaskView from './AddTask';
 class App extends Component {
   render() {
     return (
-      <div className="App">
-        <header className="App-header">
-          <img src={logo} className="App-logo" alt="logo" />
-          <p>
-            Edit <code>src/App.js</code> and save to reload.
-          </p>
-          <a
-            className="App-link"
-            href="https://reactjs.org"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Learn React
-          </a>
-        </header>
-      </div>
+      <Router>
+            <Switch>
+            <Route exact path={ROUTES.signIn} component={SignInView} />
+            <Route path={ROUTES.signUp} component={SignUpView} />
+            <Route path={ROUTES.deepSign} component={DeepSignUpView} />
+            <Route path={ROUTES.newFam} component={NewFamView} />
+            <Route path={ROUTES.join} component={JoinView} />
+            <Route path={ROUTES.main} component={MainView} />
+            <Route path={ROUTES.member} component={MemberView} />
+            <Route path={ROUTES.admin} component={AdminView} />
+            <Route path={ROUTES.add} component={AddTaskView} />
+            </Switch>
+      </Router>
     );
   }
 }
