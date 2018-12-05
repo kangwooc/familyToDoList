@@ -101,7 +101,7 @@ type message struct {
 //start starts the notification loop
 func (n *Notifier) Start(msgs <-chan amqp.Delivery) {
 	log.Println("starting notifier loop")
-	for msg := range msgs {
+	// for msg := range msgs {
 		n.mx.Lock()
 		defer n.mx.Unlock()
 		// for conn := range n.connections {
