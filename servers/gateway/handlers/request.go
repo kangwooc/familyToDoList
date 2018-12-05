@@ -172,9 +172,22 @@ func (context *HandlerContext) AcceptRequest(w http.ResponseWriter, r *http.Requ
 			http.Error(w, err.Error(), http.StatusBadRequest)
 			return
 		}
-		q, _ := context.User.GetByID(accept.MemberID)
+		//get slice of user from the map
+		//remove it from the slice.
+		var slice []*users.User
+		slice = make([]*users.User, 0)
+		if len(context.Request[sessionState.User.ID]) == 1 {
+			context.Request[sessionState.User.ID] = make([]*users.User, 0)
+		} else {
+			for _, k := range context.Request[sessionState.User.ID] {
+				if k.ID != accept.MemberID {
+					//append
+					slice = append(slice, k)
+				}
+			}
+			context.Request[sessionState.User.ID] = slice
+		}
 
-		log.Printf("mem id %v", q)
 		w.Header().Set("Content-Type", "text/plain")
 		w.Write([]byte("Request complete!"))
 	} else {
