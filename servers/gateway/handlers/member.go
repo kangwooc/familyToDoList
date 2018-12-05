@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"final-project-zco/servers/gateway/models/users"
 	"final-project-zco/servers/gateway/sessions"
+	"log"
 	"net/http"
 	"path"
 	"strconv"

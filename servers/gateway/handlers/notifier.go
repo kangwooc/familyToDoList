@@ -4,7 +4,10 @@ import (
 	"log"
 	"sync"
 
+	"final-project-zco/servers/gateway/models/users"
+
 	"github.com/gorilla/websocket"
+	"github.com/streadway/amqp"
 )
 
 //Notifier is an object that handles WebSocket notifications.
@@ -14,7 +17,7 @@ type Notifier struct {
 	//into which one goroutine can
 	//write byte slices, and out of which
 	//another goroutine can read those byte slices
-	eventQ chan []byte
+	// eventQ chan []byte
 
 	//TODO: add other fields to this struct
 	//that you might need. For example, you'll
@@ -24,20 +27,20 @@ type Notifier struct {
 	//protect it for concurrent use!
 
 	// map for updating the task list
-	task map[int64]*websocket.Conn
-	mx   sync.RWMutex
+	connections map[int64]*websocket.Conn
+	mx          sync.RWMutex
 }
 
 //NewNotifier constructs a new Notifier
 func NewNotifier() *Notifier {
 	n := &Notifier{
-		eventQ: make(chan []byte, 1024), //buffered channel that can hold 1024 slices at a time
-		task:   make(map[int64]*websocket.Conn),
-		mx:     sync.RWMutex{},
+		// eventQ: make(chan []byte, 1024), //buffered channel that can hold 1024 slices at a time
+		connections: make(map[int64]*websocket.Conn),
+		mx:          sync.RWMutex{},
 	}
 
 	//TODO: call the .start() method on its own goroutine
-	go n.start()
+	// go n.start()
 	return n
 }
 
@@ -47,7 +50,7 @@ func (n *Notifier) AddClient(client *websocket.Conn, id int64) {
 	n.mx.Lock()
 	defer n.mx.Unlock()
 
-	n.task[id] = client
+	n.connections[id] = client
 	//TODO: add the client to the slice you are using
 	//to track all current WebSocket connections.
 	//Since this can be called from multiple
@@ -67,19 +70,53 @@ func (n *Notifier) readLoop(c *websocket.Conn) {
 	}
 }
 
-//Notify broadcasts the event to all WebSocket clients
-func (n *Notifier) Notify(event []byte) {
-	log.Printf("adding event to the queue")
-	//TODO: add `event` to the `n.eventQ`
-	//see https://tour.golang.org/concurrency/2
-	//and https://gobyexample.com/channels
-	n.eventQ <- event
+// //Notify broadcasts the event to all WebSocket clients
+// func (n *Notifier) Notify(event []byte) {
+// 	log.Printf("adding event to the queue")
+// 	//TODO: add `event` to the `n.eventQ`
+// 	//see https://tour.golang.org/concurrency/2
+// 	//and https://gobyexample.com/channels
+// 	n.eventQ <- event
+// }
+
+// var buffer = {
+//     "type": "",
+//     "task": {},
+//     "tasks": [],
+//     "point": 0,
+//     "User": {},
+// };
+
+type task struct {
+}
+
+type message struct {
+	name  string
+	task  *task
+	tasks []*task
+	point int
+	user  users.User
 }
 
 //start starts the notification loop
-func (n *Notifier) start() {
+func (n *Notifier) Start(msgs <-chan amqp.Delivery) {
 	log.Println("starting notifier loop")
-
+	for msg := range msgs {
+		n.mx.Lock()
+		defer n.mx.Unlock()
+		// for conn := range n.connections {
+		// 	var message message
+		// 	err := json.Unmarshal(msg.Body, message)
+		// 	if err != nil {
+		// 		//throw error
+		// 	}
+		// 	//proabably another forloop?
+		// 	// if message.id == conn {
+		// 	// 	//write message
+		// 	// 	//if there is an error while writing message remove connection
+		// 	// }
+		// }
+	}
 	//TODO: start a never-ending loop that reads
 	//new events out of the `n.eventQ` and broadcasts
 	//them to all WebSocket connections.

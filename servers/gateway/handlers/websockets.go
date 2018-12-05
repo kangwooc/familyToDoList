@@ -2,36 +2,34 @@ package handlers
 
 import (
 	"final-project-zco/servers/gateway/sessions"
-	"fmt"
 	"log"
 	"net/http"
-	"time"
 
 	"github.com/gorilla/websocket"
 )
 
-//NotificationsHandler handles requests for the /notifications resource
-type NotificationsHandler struct {
-	notifier *Notifier
-}
+// //NotificationsHandler handles requests for the /notifications resource
+// type NotificationsHandler struct {
+// 	notifier *Notifier
+// }
 
-//NewNotificationsHandler constructs a new NotificationsHandler
-func NewNotificationsHandler(notifier *Notifier) *NotificationsHandler {
-	return &NotificationsHandler{notifier}
-}
+// //NewNotificationsHandler constructs a new NotificationsHandler
+// func NewNotificationsHandler(notifier *Notifier) *NotificationsHandler {
+// 	return &NotificationsHandler{notifier}
+// }
 
-//ServeHTTP handles HTTP requests for the NotificationsHandler
-func (nh *NotificationsHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	//NOTE: this is just a simple handler for testing that
-	//triggers a new notification anytime this handler
-	//receives an HTTP request using any method.
-	//In your real server, you will listen for new messages
-	//from your MQ server, and pass them to the Notifier as
-	//you receive them.
-	w.Header().Add("Access-Control-Allow-Origin", "*")
-	msg := fmt.Sprintf("Notification pushed from the server at %s", time.Now().Format("15:04:05"))
-	nh.notifier.Notify([]byte(msg))
-}
+// //ServeHTTP handles HTTP requests for the NotificationsHandler
+// func (nh *NotificationsHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+// 	//NOTE: this is just a simple handler for testing that
+// 	//triggers a new notification anytime this handler
+// 	//receives an HTTP request using any method.
+// 	//In your real server, you will listen for new messages
+// 	//from your MQ server, and pass them to the Notifier as
+// 	//you receive them.
+// 	w.Header().Add("Access-Control-Allow-Origin", "*")
+// 	msg := fmt.Sprintf("Notification pushed from the server at %s", time.Now().Format("15:04:05"))
+// 	nh.notifier.Notify([]byte(msg))
+// }
 
 var upgrader = websocket.Upgrader{
 	ReadBufferSize:  1024,

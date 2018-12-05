@@ -13,6 +13,7 @@ import (
 
 	"github.com/go-redis/redis"
 	_ "github.com/go-sql-driver/mysql"
+	"github.com/streadway/amqp"
 )
 
 //main is the main entry point for the server
@@ -65,50 +66,51 @@ func main() {
 	})
 	redisStore := sessions.NewRedisStore(client, time.Hour)
 	store := users.NewMySQLStore(db)
+
+	n := handlers.NewNotifier()
 	ctx := &handlers.HandlerContext{
 		SigningKey: sessionkey,
 		Session:    redisStore,
 		User:       store,
 		Family:     store,
+		Socket:     handlers.NewWebSocketsHandler(n),
 		Request:    make(map[int64][]*users.User, 0),
 	}
-	//rabbit := os.Getenv("RABBITADDR")
+	rabbit := os.Getenv("RABBITADDR")
 
-	// conn, err := amqp.Dial("amqp://" + rabbit + "/")
-	// failOnError(err, "Failed to connect to RabbitMQ")
-	// defer conn.Close()
-	// ch, err := conn.Channel()
-	// failOnError(err, "Failed to open a channel")
-	// defer ch.Close()
-	// message Queue
-	// request, err := ch.QueueDeclare(
-	// 	"RequestQueue", // name matches what we used in our nodejs services
-	// 	true,           // durable
-	// 	false,          // delete when unused
-	// 	false,          // exclusive
-	// 	false,          // no-wait
-	// 	nil,            // arguments
-	// )
-	// failOnError(err, "Failed to declare a queue")
+	conn, err := amqp.Dial("amqp://" + rabbit + "/")
+	failOnError(err, "Failed to connect to RabbitMQ")
+	defer conn.Close()
+	ch, err := conn.Channel()
+	failOnError(err, "Failed to open a channel")
+	defer ch.Close()
+	request, err := ch.QueueDeclare(
+		"Buffer", // name matches what we used in our nodejs services
+		true,     // durable
+		false,    // delete when unused
+		false,    // exclusive
+		false,    // no-wait
+		nil,      // arguments
+	)
+	failOnError(err, "Failed to declare a queue")
 
-	// err = ch.Qos(
-	// 	1,     // prefetch count
-	// 	0,     // prefetch size
-	// 	false, // global
-	// )
-	// failOnError(err, "Failed to set QoS")
-	// Invoke a goroutine for handling control messages from this connection
-	// msgs, err := ch.Consume(
-	// 	request.Name, // queue
-	// 	"",           // consumer
-	// 	false,        // auto-ack
-	// 	false,        // exclusive
-	// 	false,        // no-local
-	// 	false,        // no-wait
-	// 	nil,          // args
-	// )
+	err = ch.Qos(
+		1,     // prefetch count
+		0,     // prefetch size
+		false, // global
+	)
+	failOnError(err, "Failed to set QoS")
+	msgs, err := ch.Consume(
+		request.Name, // queue
+		"",           // consumer
+		false,        // auto-ack
+		false,        // exclusive
+		false,        // no-local
+		false,        // no-wait
+		nil,          // args
+	)
 	failOnError(err, "Failed to register a consumer")
-	// go processMessages(handler, msgs)
+	go n.Start()
 	mux := http.NewServeMux()
 	mux.Handle("/tasks/", ctx.NewServiceProxy(taskaddr))
 
