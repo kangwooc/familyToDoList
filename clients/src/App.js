@@ -15,7 +15,7 @@ class App extends Component {
     return (
       <Router>
             <Switch>
-            <Route path={ROUTES.signIn} component={SignInView} />
+            <Route exact path={ROUTES.signIn} component={SignInView} />
             <Route path={ROUTES.signUp} component={SignUpView} />
             <Route path={ROUTES.deepSign} component={DeepSignUpView} />
             <Route path={ROUTES.newFam} component={NewFamView} />
@@ -24,7 +24,6 @@ class App extends Component {
             <Route path={ROUTES.member} component={MemberView} />
             <Route path={ROUTES.admin} component={AdminView} />
             <Route path={ROUTES.add} component={AddTaskView} />
-            <Redirect to={ROUTES.signIn} />
             </Switch>
       </Router>
     );

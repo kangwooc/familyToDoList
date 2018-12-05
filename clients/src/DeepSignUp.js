@@ -7,11 +7,6 @@ export default class DeepSignUpView extends React.Component {
     constructor(props) {
         super(props);
         this.state = {
-            password: "",
-            passwordConfirm: "",
-            userName: "",
-            firstName: "",
-            lastName: ""
         }
     }
 
@@ -23,9 +18,11 @@ export default class DeepSignUpView extends React.Component {
     // }
 
     handleNewFam() {
-        console.log("clicked")
+        this.props.history.push({pathname: '/newFam'})
+
     }
     handleJoin() {
+        this.props.history.push({pathname: '/join'})
 
     }
 

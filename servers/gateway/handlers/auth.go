@@ -74,12 +74,6 @@ func (context *HandlerContext) CreateHandler(w http.ResponseWriter, r *http.Requ
 			http.Error(w, "Request body must be in JSON", http.StatusUnsupportedMediaType)
 			return
 		}
-		// id := path.Base(r.URL.Path)
-		// split := strings.Split(r.URL.Path, "/")
-		// if len(split) > 4 {
-		// 	http.Error(w, "User must be authenticated", http.StatusUnauthorized)
-		// 	return
-		// }
 		sessionState := &SessionState{}
 		sid, err := sessions.GetState(r, context.SigningKey, context.Session, sessionState)
 		if err != nil {
