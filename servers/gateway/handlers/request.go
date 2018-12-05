@@ -16,7 +16,7 @@ type status struct {
 }
 
 // JoinHandler join a family room
-// post
+// post /join
 func (context *HandlerContext) JoinHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method == http.MethodPost {
 		// header := r.Header.Get("Content-Type")

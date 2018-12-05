@@ -48,15 +48,16 @@ app.use(express.json());
 //add the request logging middleware
 app.use(morgan("dev"));
 
-// GET /tasks/:familyID
+// GET /tasks/:familyRoom
 // If a user is authenticated(member/admin of this family),
 // show the public to do list with all the in-progress tasks and undo tasks. (called to show the public task list)
-app.get('/tasks/:id', (req, res, next) => {
+app.get('/tasks/:roomname', (req, res, next) => {
     // Check whether user is authenticated using X-user header
     let userJSON = req.get("X-User");
     if (userJSON) {
-        var id = req.params.id;
-        Task.find({"familyID": id}).lean().exec((err, tasks) => {
+        var roomname = req.params.roomname;
+        console.log(roomname);
+        Task.find({"familyRoomName": roomname}).lean().exec((err, tasks) => {
             if (err) {
                 res.statusCode = 500;
                 res.send("Error while finding tasks");
@@ -74,48 +75,25 @@ app.get('/tasks/:id', (req, res, next) => {
     }
 });
 
-// GET /tasks/:familyID
-// If a user is authenticated(member/admin of this family),
-// show the public to do list with all the in-progress tasks and undo tasks.
-// (called to show the public task list)
-app.get('/tasks/:id', (req, res, next) => {
-    // Check whether user is authenticated using X-user header
-    let userJSON = req.get("X-User");
-    if (userJSON) {
-        var id = req.params.id;
-        Task.find( {"familyID": id}).lean().exec((err, tasks) => {
-            if (err) {
-                res.statusCode = 500;
-                res.send("Error while finding tasks");
-                return;
-            }
-            res.statusCode = 200;
-            res.setHeader('Content-Type', 'application/json');
-            res.end(JSON.stringify(tasks));
-            return;
-        });
-    } else {
-        res.statusCode = 401;
-        res.send("no X-User header in the request");
-        return;
-    }
-});
 
-// POST /tasks/:familyID
+// POST /tasks/:roomname
 // If a user is authenticated(admin), post the new task in his/her private task list and the public task list. (called when an admin clicks create task in his/her private task page)
-app.post("/tasks/:id", (req, res, next) => {
+app.post("/tasks/:roomname", (req, res, next) => {
     // Check whether user is authenticated using X-user header
     let userJSON = req.get("X-User");
     // Check whether user is member or admin
     if (userJSON) {
         let user = JSON.parse(userJSON);
-        var id = req.params.id;
+        var roomname = req.params.roomname;
         var task;
         console.log(user);
+        console.log(req.body)
+        console.log("req.body.description: "+ req.body.description);
+        console.log(roomname);
         // should return 400 if req.body.description is empty
-        if (req.body.description == null || req.body.description == "") {
+        if (req.body.description === null || req.body.description === "") {
             res.statusCode = 400;
-            res.send("description is empty");
+            res.end("description is empty");
             return;
         }
         switch (user.personrole) {
@@ -124,18 +102,18 @@ app.post("/tasks/:id", (req, res, next) => {
                 // (called when an admin clicks create task in his/her private task page)
                 var task = new Task ({
                     description: req.body.description,
-                    familyID: id,
                     familyRoomName: user.roomname
                 });
                 // Create new task and push to task table
                 Task.addTask(task, (err, task) => {
                     if (err) {
+                        console.log("err: "+ err);
                         res.statusCode = 400;
                         res.end("duplicated document");
                         return;
                     }
                 });
-                Task.find({"familyID": id}).exec((err, tasks) =>{
+                Task.find({"familyRoomName": roomname}).exec((err, tasks) =>{
                     if (err) {
                         res.statusCode = 500;
                         res.send("Error while finding tasks");

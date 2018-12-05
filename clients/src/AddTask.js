@@ -7,8 +7,9 @@ export default class AddTaskView extends React.Component {
     constructor(props) {
         super(props);
         this.state = {
-            search: ""
+            task: ""
         }
+        this.handleSubmit = this.handleSubmit.bind(this)
     }
 
     // componentWillMount() {
@@ -18,9 +19,36 @@ export default class AddTaskView extends React.Component {
     //     }
     // }
 
-    handleSearch() {
+    handleSubmit(e) {
+        e.preventDefault()
+        console.log(`https://localhost:443/tasks/${window.localStorage.getItem("roomid")}`)
+        const task = this.state.task;
+        console.log(task)
 
+        
+
+        fetch(`https://localhost:443/tasks/${window.localStorage.getItem("roomid")}`, {
+            method: "POST",
+            headers: {
+                "Authorization": window.localStorage.getItem("auth")
+            },
+            body: JSON.stringify({"description": task})
+        }).then(res => {
+            if (!res.ok) { 
+                throw Error(res.statusText + " " + res.status);
+            }
+            return res.json();
+        }).then(data =>{
+            console.log(data);
+
+        }).catch(error => {
+                alert(error)
+                localStorage.clear()
+                this.props.history.push({pathname: '/signin'})
+            }       
+        )
     }
+
 
     render() {
         return (
@@ -49,11 +77,14 @@ export default class AddTaskView extends React.Component {
                                 <div className="d-flex justify-content-center pt-4 pb-5">
                                     <h4>Add New Task</h4>
                                 </div>
-                                <form className="form-inline">
-                                    <div className="form-group">
-                                        <input type="New Task" className="form-control" placeholder="New Task"/>
+                                <form className="form-inline" onSubmit={this.handleSubmit}>
+                                    <div className="form-group mx-sm-3 mb-2">
+                                        <input className="form-control" placeholder="Add Task"
+                                            onInput={evt => this.setState({ task: evt.target.value})} />
+                                            {console.log(this.state.task)}
                                     </div>
-                                    <button type="submit" className="btn btn-warning mt-2 mb-2 ml-2" onClick={() => this.handleSearch()}>Submit</button>
+                                
+                                <button type="submit" className="btn btn-warning mt-2 mb-2 ml-2">Submit</button>
                                 </form>
                             </div>
                         </div>

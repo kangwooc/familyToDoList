@@ -2,6 +2,7 @@ package sessions
 
 import (
 	"errors"
+	"log"
 	"net/http"
 	"strings"
 )
@@ -46,7 +47,12 @@ func GetSessionID(r *http.Request, signingKey string) (SessionID, error) {
 		str = authQuery[1]
 	} else {
 		// Split the Authorization hearer into 2 (e.g. ["Bearer", "SessionID"])
+		log.Printf("Debug header bearer = %v", header)
+		log.Printf("Debug header[0] = %v", header[0])
+		log.Printf("Debug len(header)= %d", len(header))
 		if header[0] != "Bearer" {
+			log.Printf("lets check")
+
 			return InvalidSessionID, ErrInvalidScheme
 		}
 		str = header[1]
@@ -67,9 +73,11 @@ func GetSessionID(r *http.Request, signingKey string) (SessionID, error) {
 func GetState(r *http.Request, signingKey string, store Store, sessionState interface{}) (SessionID, error) {
 	id, err := GetSessionID(r, signingKey)
 	if err != nil {
+		log.Printf("Debug GetState error %v", err)
 		return InvalidSessionID, ErrStateNotFound
 	}
 	if err = store.Get(id, sessionState); err != nil {
+		log.Printf("Debug GetState store error %v", err)
 		return InvalidSessionID, ErrStateNotFound
 	}
 	// log.Printf("get state: %v", sessionState)

@@ -43,7 +43,7 @@ docker run -d \
 --network finalnetwork \
 rabbitmq:3-management
 
-sleep 20
+sleep 30
 
 docker run -d \
 --name tasking \

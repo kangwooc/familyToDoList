@@ -28,7 +28,6 @@ type Store interface {
 	GetRoomName(id int64) (*FamilyRoom, error)
 
 	GetByRoomName(roomname string) ([]*User, error)
-	UpdateScore(id int64, updates *Updates) (*User, error)
 	//Update applies UserUpdates to the given user ID
 	//and returns the newly-updated user
 	Update(id int64, updates *Updates) (*User, error)

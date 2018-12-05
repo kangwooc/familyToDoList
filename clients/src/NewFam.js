@@ -27,20 +27,18 @@ export default class NewFamView extends React.Component {
                 "Authorization":localStorage.getItem("auth")
             },
             body: JSON.stringify({
-                "RoomName": this.state.familyRoomName,     
+                "RoomName": this.state.familyRoomName,   
             }),
         }).then(res => {
             console.log(res)
 
             if (!res.ok) { 
-                console.log(res.headers.get('Authorization'))
 
                 console.log("111")
 
                 throw Error(res.statusText + " " + res.status);
             }
 
-            localStorage.getItem("auth");
             return res.json()
         }).then(data => {
             console.log(data)

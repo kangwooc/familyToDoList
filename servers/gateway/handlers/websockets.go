@@ -60,14 +60,16 @@ func NewWebSocketsHandler(notifier *Notifier) *WebSocketsHandler {
 
 // WebSocketsHandler implements the http.Handler interface for the WebSocketsHandler
 func (ctx *HandlerContext) WebSocketsHandler(w http.ResponseWriter, r *http.Request) {
-	log.Println("received websocket upgrade request")
+	log.Println("Debug: received websocket upgrade request")
 	sessionState := &SessionState{}
+	log.Printf("Debug: r: %v", r)
 	_, err := sessions.GetState(r, ctx.SigningKey, ctx.Session, sessionState)
 	if err != nil {
+		log.Printf("Debug: Error: %v", err)
 		http.Error(w, "User must be authenticated", http.StatusUnauthorized)
 		return
 	}
-
+	log.Println("Debug: SessionState: %v", sessionState)
 	if !upgrader.CheckOrigin(r) {
 		http.Error(w, "Origin not allowed", http.StatusForbidden)
 		return
@@ -76,7 +78,7 @@ func (ctx *HandlerContext) WebSocketsHandler(w http.ResponseWriter, r *http.Requ
 	//see https://godoc.org/github.com/gorilla/websocket
 	conn, err := upgrader.Upgrade(w, r, nil)
 	if err != nil {
-		log.Println(err)
+		http.Error(w, "can't upgrade connection", http.StatusInternalServerError)
 		return
 	}
 	log.Println("adding client to notifier")

@@ -7,6 +7,7 @@ export default class DeepSignUpView extends React.Component {
     constructor(props) {
         super(props);
         this.state = {
+          token: window.localStorage.getItem("auth")
         }
     }
 

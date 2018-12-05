@@ -5,6 +5,7 @@ import (
 	"final-project-zco/servers/gateway/models/users"
 	"final-project-zco/servers/gateway/sessions"
 	"fmt"
+	"log"
 	"net/http"
 	"path"
 	"strconv"
@@ -46,11 +47,13 @@ func (context *HandlerContext) UsersHandler(w http.ResponseWriter, r *http.Reque
 			SessionBegan: time.Now(),
 			User:         dbuser,
 		}
-		_, err = sessions.BeginSession(context.SigningKey, context.Session, newSessionState, w)
+
+		sid, err := sessions.BeginSession(context.SigningKey, context.Session, newSessionState, w)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
+		log.Printf("Debug sid from userhandler: %s", sid.String())
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusCreated)
 		err = json.NewEncoder(w).Encode(user)
