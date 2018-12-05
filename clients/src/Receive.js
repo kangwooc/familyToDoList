@@ -62,6 +62,9 @@ export default class ReceiveView extends React.Component {
 	            "roomname": roomname,
 	            "memberid": id 
             }),
+        }).then(() =>{
+            // this.props.history.push({pathname: '/receive'})
+            window.location.reload();
         }).catch(function(error) {
             alert(error)
         })
@@ -79,6 +82,10 @@ export default class ReceiveView extends React.Component {
 	            "roomname": roomname,
 	            "memberid": id 
             }),
+        }).then(() =>{
+            // this.props.history.push({pathname: '/receive'})
+            window.location.reload();
+
         }).catch(function(error) {
             alert(error)
         })
