@@ -53,11 +53,13 @@ func (context *HandlerContext) JoinHandler(w http.ResponseWriter, r *http.Reques
 		sessionState.User.Role = member.Role
 		sessionState.User.RoomName = member.RoomName
 		if err = context.Session.Save(sid, sessionState); err != nil {
+			log.Printf("adddaa")
+
+			log.Printf(err.Error())
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
 		if err = added.ApplyUpdates(member); err != nil {
-
 			http.Error(w, err.Error(), http.StatusBadRequest)
 			return
 		}

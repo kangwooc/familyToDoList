@@ -19,7 +19,6 @@ export default class JoinView extends React.Component {
     //         this.props.history.push({pathname: '/signin'})
     //     }
     // }
-    // this.props.match.params.id
 
     handleSearch() {
         fetch("https://localhost:443/join", {
@@ -29,20 +28,15 @@ export default class JoinView extends React.Component {
                 "Authorization":localStorage.getItem("auth")
             },
             body: JSON.stringify({
-	            "Role": this.state.personrole,     
-                "roomname": this.state.roomname,     
+	            "Role": this.state.personrole,    
+                "roomname": this.state.roomname,
             }),
 
         }).then(res => {
-
             if (!res.ok) { 
-                console.log( this.state.personrole)
-
-                console.log("111")
-
+                console.log(this.state.personrole)
                 throw Error(res.statusText + " " + res.status);
             }
-            // localStorage.getItem("auth");
             return res.json()
         }).then(data => {
             console.log(data)

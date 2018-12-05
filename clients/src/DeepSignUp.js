@@ -31,8 +31,8 @@ export default class DeepSignUpView extends React.Component {
         return (
             <div>
                 <header className="container-fluid bg-secondary text-white">
-                    <div className="row ">
-                        <div className="col-12 col-sm-12 col-md-12 col-lg-12 col-xl-12 pt-3 my-border" >
+                    <div className="row">
+                        <div className="col-12 col-sm-12 col-md-12 col-lg-12 col-xl-12 pt-3 my-border"xw>
                             <div className="text-center">
                                 <h1>To Do App</h1>
                             </div>     

@@ -15,14 +15,14 @@ export default class MainView extends React.Component {
     componentWillMount() {
         console.log("will mount" + localStorage.getItem("auth"))
         this.setState({ working: true });
-        fetch(`https://localhost:443/tasks/${this.props.match.params.familyID}`, {
+        fetch(`https://localhost:443/tasks/${window.localStorage.getItem("roomid")}`, {
             method: "GET",
             headers: {
                 "Authorization": window.localStorage.getItem("auth")
             },
             mode: 'cors',
             cache: 'default'
-                }).then(res => {
+        }).then(res => {
             if (!res.ok) { 
                 throw Error(res.statusText + " " + res.status);
             }
@@ -37,27 +37,27 @@ export default class MainView extends React.Component {
         )
     }
     componentDidMount() {
-        let sock;
-        document.addEventListener("DOMContentLoaded", (event) => {
-            let auth = this.state.token
-            console.log("socket " + auth)
+        // let sock;
+        // document.addEventListener("DOMContentLoaded", (event) => {
+        //     let auth = this.state.token
+        //     console.log("socket " + auth)
 
-            const url = "wss://localhost:443/ws?auth=" + auth;
-            console.log(url);
+        //     const url = "wss://localhost:443/ws?auth=" + auth;
+        //     console.log(url);
 
-            sock = new WebSocket(url);
+        //     sock = new WebSocket(url);
 
-            sock.onopen = () => {
-                console.log("Connection Opened");
-            };
-            sock.onclose = () => {
-                console.log("Connection Closed");
-            };
-            sock.onmessage = (msg) => {
-                console.log("Message received " + msg.data);
-            };
-            // this.setState({sock: sock})
-        })
+        //     sock.onopen = () => {
+        //         console.log("Connection Opened");
+        //     };
+        //     sock.onclose = () => {
+        //         console.log("Connection Closed");
+        //     };
+        //     sock.onmessage = (msg) => {
+        //         console.log("Message received " + msg.data);
+        //     };
+        //     // this.setState({sock: sock})
+        // })
     }
 
     handleSignOut() {

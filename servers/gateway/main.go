@@ -111,7 +111,7 @@ func main() {
 	)
 	fmt.Printf("Debug: after consume: %v", msgs)
 	failOnError(err, "Failed to register a consumer")
-	go n.Start(msgs, request.Name, ctx)
+	// go n.Start(msgs, request.Name, ctx)
 	//
 	// request, err := ch.QueueDeclare(
 	// 	"authQueue", // name matches what we used in our go auth
@@ -153,7 +153,7 @@ func main() {
 	mux.HandleFunc("/delete", ctx.DeleteHandler)
 	mux.HandleFunc("/memberlist/", ctx.DisplayHandler)
 
-	mux.HandleFunc("/ws", ctx.WebSocketsHandler)
+	// mux.HandleFunc("/ws", ctx.WebSocketsHandler)
 	wrappedMux := handlers.NewCors(mux)
 	log.Printf("server is listening at %s...", addr)
 	log.Fatal(http.ListenAndServeTLS(addr, tlsCertPath, tlsKeyPath, wrappedMux))

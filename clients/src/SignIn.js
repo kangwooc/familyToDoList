@@ -40,6 +40,8 @@ export default class SignInView extends React.Component {
             return res.json()
         }).then(data => {
             console.log(data)
+            localStorage.setItem("roomid", data.roomname);
+            localStorage.setItem("userid", data.id);
             this.props.history.push({pathname: '/deepSign'})
         }).catch(function(error) {
             let errorType = document.createElement("p")

@@ -17,7 +17,7 @@ export default class SignUpView extends React.Component {
 
     componentWillMount() {
         let auth = window.localStorage.getItem('auth')
-        if (auth !== null ) {
+        if (auth !== null) {
             console.log("auth is not null")
             console.log(auth)
         }
@@ -34,7 +34,7 @@ export default class SignUpView extends React.Component {
 	            "PasswordConf": this.state.passwordConfirm,
 	            "UserName": this.state.userName,    
 	            "FirstName": this.state.firstName,   
-	            "LastName": this.state.lastName     
+	            "LastName": this.state.lastName
             }),
             mode: "cors",
             cache: "default",

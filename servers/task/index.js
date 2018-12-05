@@ -56,13 +56,13 @@ app.get('/tasks/:roomname', (req, res, next) => {
     let userJSON = req.get("X-User");
     if (userJSON) {
         var roomname = req.params.roomname;
-        console.log(roomname);
-        Task.find({"familyRoomName": roomname}).lean().exec((err, tasks) => {
+        Task.find({"familyRoomName": roomname}).exec((err, tasks) => {
             if (err) {
                 res.statusCode = 500;
                 res.send("Error while finding tasks");
                 return;
             }
+            console.log(tasks)
             res.statusCode = 200;
             res.setHeader('Content-Type', 'application/json');
             res.end(JSON.stringify(tasks));
@@ -91,7 +91,7 @@ app.post("/tasks/:roomname", (req, res, next) => {
         console.log("req.body.description: "+ req.body.description);
         console.log(roomname);
         // should return 400 if req.body.description is empty
-        if (req.body.description === null || req.body.description === "") {
+        if (req.body.description === "" || req.body.description === undefined) {
             res.statusCode = 400;
             res.end("description is empty");
             return;
