@@ -249,7 +249,7 @@ app.delete("/tasks/:id", (req, res, next) => {
                 return;
             }
             // Push to message queue
-            buffer["type"] = "task-delete";
+            buffer["name"] = "task-delete";
             buffer["task"] = task;
             taskchannel.sendToQueue(
                 "taskQueue",
@@ -296,6 +296,7 @@ app.post('/tasks/progress/:id', (req, res, next) => {
             task.userID = user.id;
             task.isProgress = true;
             // push to message queue
+            buffer["name"] = "task-progress";
             buffer["user"] = user;
             buffer["task"] = task;
             taskchannel.sendToQueue(
@@ -340,6 +341,7 @@ app.post('/tasks/done/:id', (req, res, next) => {
             task.userID = user.id;
             task.isProgress = true;
             // push to message queue
+            buffer["name"] = "task-done";
             buffer["user"] = user;
             buffer["task"] = task;
             buffer["point"] = task.point; // increment point!

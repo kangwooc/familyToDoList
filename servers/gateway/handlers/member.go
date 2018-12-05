@@ -43,7 +43,6 @@ func (context *HandlerContext) DeleteHandler(w http.ResponseWriter, r *http.Requ
 		update := &users.Updates{Role: "Default", RoomName: ""}
 		u, err := context.User.UpdateToMember(user.ID, update)
 		if err != nil {
-			// log.Printf("Debug: sessionState User Role on Delete: ", sessionState.User.Role)
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}

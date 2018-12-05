@@ -3,6 +3,8 @@ package handlers
 import (
 	"encoding/json"
 	"final-project-zco/servers/gateway/sessions"
+	"fmt"
+	"log"
 	"net/http"
 	"net/http/httputil"
 	"strings"
@@ -27,12 +29,12 @@ func (ctx *HandlerContext) NewServiceProxy(addrs string) *httputil.ReverseProxy 
 
 			ss := &SessionState{}
 			if _, err := sessions.GetState(r, ctx.SigningKey, ctx.Session, ss); err != nil {
-				// log.Printf(fmt.Sprintf("session id error: %v", err.Error()))
+				log.Printf(fmt.Sprintf("session id error: %v", err.Error()))
 				return
 			}
 			userJSON, err := json.Marshal(ss.User)
 			if err != nil {
-				// log.Printf(fmt.Sprintf("json marshal error: %v", err.Error()))
+				log.Printf(fmt.Sprintf("json marshal error: %v", err.Error()))
 				return
 			}
 			// log.Printf("DEBUG: this is user json %v", userJSON)
