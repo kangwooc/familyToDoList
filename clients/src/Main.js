@@ -4,50 +4,27 @@ export default class MainView extends React.Component {
     constructor(props) {
         super(props);
         this.state = {
-<<<<<<< HEAD
-            role: true,
-            href: "/admin",
-            sock: null,
-            token: window.localStorage.getItem("auth")
-=======
             // role: true,
             href: "/admin",
             data: null,
             progress: "",
             admin: true,
             status: ""
->>>>>>> a971f45a957ee8c29703ad5bf694a4f0e09f99cf
         }
         
     }
 
     componentWillMount() {
-<<<<<<< HEAD
-        console.log("will mount" + localStorage.getItem("auth"))
-        this.setState({ working: true });
-        fetch(`https://localhost:443/tasks/${window.localStorage.getItem("roomid")}`, {
-            method: "GET",
-            headers: {
-                "Authorization": window.localStorage.getItem("auth")
-            },
-            mode: 'cors',
-            cache: 'default'
-=======
         fetch(`https://localhost:443/tasks/${this.props.match.params.id}`, {
             method: "GET",
             headers: {
                 "Authorization": window.localStorage.getItem("auth")
             }
->>>>>>> a971f45a957ee8c29703ad5bf694a4f0e09f99cf
         }).then(res => {
             if (!res.ok) { 
                 throw Error(res.statusText + " " + res.status);
             }
             return res.json()
-<<<<<<< HEAD
-        }).then(data =>{
-            console.log(data)
-=======
         }).then(data => {
             console.log(data)
             let users = data.map((info) => {
@@ -69,7 +46,6 @@ export default class MainView extends React.Component {
                 );
             });
             this.setState({data: users});
->>>>>>> a971f45a957ee8c29703ad5bf694a4f0e09f99cf
         }).catch(error => {
                 alert(error)
                 localStorage.clear()
@@ -77,33 +53,6 @@ export default class MainView extends React.Component {
             }        
         )
     }
-<<<<<<< HEAD
-    componentDidMount() {
-        // let sock;
-        // document.addEventListener("DOMContentLoaded", (event) => {
-        //     let auth = this.state.token
-        //     console.log("socket " + auth)
-
-        //     const url = "wss://localhost:443/ws?auth=" + auth;
-        //     console.log(url);
-
-        //     sock = new WebSocket(url);
-
-        //     sock.onopen = () => {
-        //         console.log("Connection Opened");
-        //     };
-        //     sock.onclose = () => {
-        //         console.log("Connection Closed");
-        //     };
-        //     sock.onmessage = (msg) => {
-        //         console.log("Message received " + msg.data);
-        //     };
-        //     // this.setState({sock: sock})
-        // })
-    }
-
-    handleSignOut() {
-=======
 
     handleProgress(id) {
         fetch(`https://localhost:443/tasks/progress/${id}`, {
@@ -122,7 +71,6 @@ export default class MainView extends React.Component {
             alert()
         })
     }
->>>>>>> a971f45a957ee8c29703ad5bf694a4f0e09f99cf
 
     handleSignOut() {
         fetch("https://localhost:443/sessions/mine", {

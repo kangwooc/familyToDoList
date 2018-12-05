@@ -152,12 +152,7 @@ func (context *HandlerContext) AcceptRequest(w http.ResponseWriter, r *http.Requ
 			return
 		}
 		var accept status
-<<<<<<< HEAD
 		if err := json.NewDecoder(r.Body).Decode(&accept); err != nil {
-=======
-		err = json.NewDecoder(r.Body).Decode(&accept)
-		if err != nil {
->>>>>>> a971f45a957ee8c29703ad5bf694a4f0e09f99cf
 			http.Error(w, "Decoding problem", http.StatusBadRequest)
 			return
 		}

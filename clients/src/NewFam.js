@@ -59,12 +59,7 @@ export default class NewFamView extends React.Component {
             return res.json()
         }).then(data => {
             console.log(data)
-<<<<<<< HEAD
-            this.setState({familyID: data.id})
-            this.props.history.push({pathname: '/main/' + data.id})    // go to main task list
-=======
             this.props.history.push({pathname: '/main/' + data.roomname})    // go to main task list
->>>>>>> a971f45a957ee8c29703ad5bf694a4f0e09f99cf
         }).catch(function(error) {
             let errorType = document.createElement("p")
             let errorMessage = document.createTextNode("Error to save your data " + error)

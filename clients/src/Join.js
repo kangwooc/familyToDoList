@@ -43,27 +43,10 @@ export default class JoinView extends React.Component {
                 "Authorization": localStorage.getItem("auth")
             },
             body: JSON.stringify({
-<<<<<<< HEAD
-	            "Role": this.state.personrole,    
-=======
->>>>>>> a971f45a957ee8c29703ad5bf694a4f0e09f99cf
                 "roomname": this.state.roomname,
             }),
 
         }).then(res => {
-<<<<<<< HEAD
-            if (!res.ok) { 
-                console.log(this.state.personrole)
-                throw Error(res.statusText + " " + res.status);
-            }
-            return res.json()
-        }).then(data => {
-            console.log(data)
-            this.setState({id: data.id})
-            this.props.history.push({pathname: '/main'})    // go to main task list
-        }).catch(function(error) {
-=======
-
             if (!res.ok) {
                 console.log(localStorage.getItem("auth"))
                 console.log(this.state.roomname)
@@ -76,7 +59,6 @@ export default class JoinView extends React.Component {
             // this.setState({ id: data.id })
             // this.props.history.push({ pathname: '/main/' + data.id })    // go to main task list
         }).catch(function (error) {
->>>>>>> a971f45a957ee8c29703ad5bf694a4f0e09f99cf
             let errorType = document.createElement("p")
             let errorMessage = document.createTextNode("Error to save your data " + error)
             errorType.appendChild(errorMessage)
