@@ -10,7 +10,20 @@ export default class MemberView extends React.Component {
     }
 
     handleSignOut() {
-
+        fetch("https://localhost:443/sessions/mine", {
+            method: "DELETE",
+            headers: {
+                "Authorization": localStorage.getItem("auth")
+            }
+        }).then(res => {
+            if (!res.ok) { 
+                throw Error(res.statusText + " " + res.status);
+            }
+            localStorage.clear()
+            this.props.history.push({pathname: '/signin'})
+        }).catch(function(error) {
+            localStorage.clear()
+        })   
     }
 
     render() {

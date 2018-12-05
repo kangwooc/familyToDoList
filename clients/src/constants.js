@@ -4,8 +4,9 @@ export const ROUTES = {
     deepSign: "/deepSign",
     newFam: "/newFam",
     join: "/join",
-    main: "/main",
+    main: "/main/:id",
     member: "/member",
     admin: "/admin",
-    add: "/add"
+    add: "/add",
+    receive: "/receive"
 }

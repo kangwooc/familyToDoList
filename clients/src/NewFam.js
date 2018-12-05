@@ -18,6 +18,23 @@ export default class NewFamView extends React.Component {
     //     }
     // }
 
+    handleSignOut() {
+        fetch("https://localhost:443/sessions/mine", {
+            method: "DELETE",
+            headers: {
+                "Authorization": localStorage.getItem("auth")
+            }
+        }).then(res => {
+            if (!res.ok) { 
+                throw Error(res.statusText + " " + res.status);
+            }
+            localStorage.clear()
+            this.props.history.push({pathname: '/signin'})
+        }).catch(function(error) {
+            localStorage.clear()
+        })   
+    }
+
     handleMakeRoom() {
         fetch("https://localhost:443/create", {
             method: "POST",
@@ -43,8 +60,7 @@ export default class NewFamView extends React.Component {
             return res.json()
         }).then(data => {
             console.log(data)
-            this.setState({id: data.id})
-            this.props.history.push({pathname: '/main'})    // go to main task list
+            this.props.history.push({pathname: '/main/' + data.roomname})    // go to main task list
         }).catch(function(error) {
             let errorType = document.createElement("p")
             let errorMessage = document.createTextNode("Error to save your data " + error)
@@ -88,7 +104,10 @@ export default class NewFamView extends React.Component {
                                         </button>
 
                                     </div>
-                                    <Link to={ROUTES.signIn}>Back to HomePage</Link>
+                                    <button className="btn btn-warning mr-2 p-2"
+                                            onClick={() => this.handleSignOut()}>
+                                            Sign Out
+                                    </button>
                                 </div>
                             </div>
                         </div>

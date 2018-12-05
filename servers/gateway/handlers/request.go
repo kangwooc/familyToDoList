@@ -151,14 +151,12 @@ func (context *HandlerContext) AcceptRequest(w http.ResponseWriter, r *http.Requ
 			return
 		}
 		var accept status
-		log.Printf("this is body yo %v", r.Body)
-
 		err = json.NewDecoder(r.Body).Decode(&accept)
 		if err != nil {
 			http.Error(w, "Decoding problem", http.StatusBadRequest)
 			return
 		}
-		up := &users.Updates{Role: "Member", RoomName: accept.RoomName}
+		up := &users.Updates{Role: accept.Role, RoomName: accept.RoomName}
 		added, err := context.User.UpdateToMember(accept.MemberID, up)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusBadRequest)

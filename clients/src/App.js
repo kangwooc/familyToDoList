@@ -10,6 +10,7 @@ import MainView from './Main';
 import MemberView from './Member';
 import AdminView from './Admin';
 import AddTaskView from './AddTask';
+import ReceiveView from './Receive';
 class App extends Component {
   render() {
     return (
@@ -24,6 +25,7 @@ class App extends Component {
             <Route path={ROUTES.member} component={MemberView} />
             <Route path={ROUTES.admin} component={AdminView} />
             <Route path={ROUTES.add} component={AddTaskView} />
+            <Route path={ROUTES.receive} component={ReceiveView} />
             </Switch>
       </Router>
     );

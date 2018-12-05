@@ -36,9 +36,11 @@ db.once('open', function callback () {
 var taskchannel;
 // message queue struct
 var buffer = {
-    "type": "",
+    "name": "",
     "task": {},
-    "tasks": []
+    "tasks": [],
+    "point": 0,
+    "User": {},
 };
 var Task = require('./models/task');
 //add JSON request body parsing middleware
@@ -46,41 +48,23 @@ app.use(express.json());
 //add the request logging middleware
 app.use(morgan("dev"));
 
-// compare the json object
-// Reference:https://stackoverflow.com/questions/23826209/javascript-compare-the-structure-of-two-json-objects-while-ignoring-their-value
-function compareObjects(obj1, obj2){
-    var equal = true;
-    for (var i in obj1) {
-        if (!obj2.hasOwnProperty(i)) {
-            equal = false;
-            break;
-        }
-    }
-    return equal;
-}
-
-// arrayRemove is the function which removes the value in the array
-function arrayRemove(arr, value) {
-    console.log(arr);
-    return arr.filter(function (ele) {
-        return ele !== value;
-    });
-}
-// GET /tasks/:familyID
+// GET /tasks/:familyRoom
 // If a user is authenticated(member/admin of this family),
 // show the public to do list with all the in-progress tasks and undo tasks. (called to show the public task list)
-app.get('/tasks/:id', (req, res, next) => {
+app.get('/tasks/:roomname', (req, res, next) => {
     // Check whether user is authenticated using X-user header
     let userJSON = req.get("X-User");
     if (userJSON) {
-        var id = req.params.id;
-        Task.find({"familyID": id}).lean().exec().then((err, tasks) => {
+        var roomname = req.params.roomname;
+        console.log(roomname);
+        Task.find({"familyRoomName": roomname}).lean().exec((err, tasks) => {
             if (err) {
                 res.statusCode = 500;
                 res.send("Error while finding tasks");
                 return;
             }
             res.statusCode = 200;
+            res.setHeader('Content-Type', 'application/json');
             res.end(JSON.stringify(tasks));
             return;
         });
@@ -91,42 +75,66 @@ app.get('/tasks/:id', (req, res, next) => {
     }
 });
 
-// POST /tasks/:familyID
+
+// POST /tasks/:roomname
 // If a user is authenticated(admin), post the new task in his/her private task list and the public task list. (called when an admin clicks create task in his/her private task page)
-app.post("/tasks/:id", (req, res, next) => {
+app.post("/tasks/:roomname", (req, res, next) => {
     // Check whether user is authenticated using X-user header
     let userJSON = req.get("X-User");
     // Check whether user is member or admin
     if (userJSON) {
         let user = JSON.parse(userJSON);
-        var id = req.params.id;
+        var roomname = req.params.roomname;
         var task;
         console.log(user);
-        console.log(user.personrole);
+        console.log(req.body)
+        console.log("req.body.description: "+ req.body.description);
+        console.log(roomname);
+        // should return 400 if req.body.description is empty
+        if (req.body.description === null || req.body.description === "") {
+            res.statusCode = 400;
+            res.send("description is empty");
+            return;
+        }
         switch (user.personrole) {
             case "Admin":
                 // If a user is authenticated(admin), post the new task in his/her private task list and the public task list.
                 // (called when an admin clicks create task in his/her private task page)
                 var task = new Task ({
-                    description: req.Body.description,
-                    point: req.Body.point,
-                    familyID: id
+                    description: req.body.description,
+                    familyRoomName: user.roomname
                 });
                 // Create new task and push to task table
-                task.save((err) => {
+                Task.addTask(task, (err, task) => {
                     if (err) {
-                        console.log(err);
+                        console.log("err: "+ err);
+                        res.statusCode = 400;
+                        res.end("duplicated document");
+                        return;
                     }
                 });
+                Task.find({"familyRoomName": roomname}).exec((err, tasks) =>{
+                    if (err) {
+                        res.statusCode = 500;
+                        res.send("Error while finding tasks");
+                        return;
+                    }
+                    buffer["tasks"] = tasks;
+                });
                 // message queue
-                buffer["type"] = "task-new";
-                buffer["tasks"] = tasks;
+                buffer["name"] = "task-new";
+                buffer["task"] = task;
                 // Push to message queue
                 taskchannel.sendToQueue(
                     "taskQueue",
                     Buffer.from(JSON.stringify(buffer)),
                     {persistent: true}
                 );
+                // Return 201 and application/json
+                res.statusCode = 201;
+                res.setHeader('Content-Type', 'application/json');
+                res.end(JSON.stringify(task));
+                return;
             break;
             default:
                 res.statusCode = 401;
@@ -134,11 +142,6 @@ app.post("/tasks/:id", (req, res, next) => {
                 return;  
             break;
         }
-        // Return 201 and application/json
-        res.statusCode = 201;
-        res.setHeader('Content-Type', 'application/json');
-        res.end(JSON.stringify(task));
-        return;
     } else {
         res.statusCode = 401;
         res.send("no X-User header in the request");
@@ -147,7 +150,8 @@ app.post("/tasks/:id", (req, res, next) => {
 });
 
 // PATCH /tasks/:taskid
-//   + If a user is authenticated(admin), update the task in his/her private task list and the public task list. (called when an admin clicks update in his/her private task page)
+//  If a user is authenticated(admin), update the task in his/her private task list and the public task list. 
+// (called when an admin clicks update in his/her private task page)
 app.patch("/tasks/:id", (req, res, next) => {
     // Check whether user is authenticated using X-user header
     let userJSON = req.get("X-User");
@@ -155,21 +159,29 @@ app.patch("/tasks/:id", (req, res, next) => {
     if (userJSON) {
         let user = JSON.parse(userJSON);
         var id = req.params.id;
+        console.log("Debug in patch //tasks/:id " + user);
+        // if a user is not admin, the error should return 401
         if (user.personrole != "Admin") {
             res.statusCode = 401;
             res.send("not proper role in the request");
             return;
         }
+        // should return 400 if req.body.description is empty
+        if (req.body.description == "") {
+            res.statusCode = 400;
+            res.send("description is empty");
+            return;
+        }
         // Update the task and return 200
-        Task.findOne({"_id": id}).exec().then((err, task) => {
+        Task.findOne({"_id": id}).exec((err, task) => {
             if (err) {
                 res.statusCode = 500;
-                res.send("Error on execute finding family");
+                res.send("Error on execute finding task");
                 return;
             }
             // Push to message queue
-            task.description = req.Body.description;
-            buffer["type"] = "task-edit";
+            task.description = req.body.description;
+            buffer["name"] = "task-edit";
             buffer["task"] = task;
             taskchannel.sendToQueue(
                 "taskQueue",
@@ -185,34 +197,38 @@ app.patch("/tasks/:id", (req, res, next) => {
         res.statusCode = 401;
         res.send("no X-User header in the request");
         return;
-    } 
+    }
 });
 
 
-// + DELETE /tasks/:taskId
-//    + If a user is authenticated(admin), delete the task from his/her private task list and the public task list.
+// DELETE /tasks/:taskId
+// If a user is authenticated(admin), delete the task from his/her private task list
+// and the public task list.
 app.delete("/tasks/:id", (req, res, next) => {
     // Check whether user is authenticated using X-user header
     let userJSON = req.get("X-User");
     // Check whether user is member or admin
     if (userJSON) {
         let user = JSON.parse(userJSON);
-        // If a user is authenticated(admin), delete the task from his/her private task list and the public task list.
+        var id = req.params.id;
+        // If a user is authenticated(admin), 
+        // delete the task from his/her private task list and the public task list.
         // If not return 401.
         if (user.personrole != "Admin") {
             res.statusCode = 401;
             res.send("not proper role in the request");
             return;
         }
-        // Update the task and return 200
-        Task.delete({"_id": id}).exec((err, task) => {
+        // Delete the task and return 200
+        Task.deleteOne({"_id": id}).exec((err, task) => {
             if (err) {
                 res.statusCode = 500;
                 res.send("Error on execute finding family");
                 return;
             }
             // Push to message queue
-            buffer["type"] = "task-delete";
+            buffer["name"] = "task-delete";
+            buffer["task"] = task;
             taskchannel.sendToQueue(
                 "taskQueue",
                 Buffer.from(JSON.stringify(buffer)),
@@ -227,12 +243,100 @@ app.delete("/tasks/:id", (req, res, next) => {
         res.send("no X-User header in the request");
         return;
     }
-    // Delete task
-    // If it doesn’t have in task, return 500.
-    // Push to message queue
-})
+});
 
+// POST /tasks/progress/:taskid
+// If a user is authenticated(member), add task for him/her private task list
+app.post('/tasks/progress/:id', (req, res, next) => {
+    // Check whether user is authenticated using X-user header
+    let userJSON = req.get("X-User");
 
+    if (userJSON) {
+        let user = JSON.parse(userJSON);
+        var id = req.params.id;
+        console.log("Debug: post /tasks/progress/:id " + user);
+        console.log("Debug: post /tasks/progress/:id " + user.personrole);
+        console.log("Debug: post /tasks/progress/:id " + id);
+        if (user.personrole != "Member") {
+            res.statusCode = 401;
+            res.send("not proper role in the request");
+            return;
+        }
+        Task.findByIdAndUpdate({_id: id}, {$set: {"userID": user.id, "isProgress": true}}, {$push: {"userID": user.id, "isProgress": true}}).exec((err, task) => {
+            if (err) {
+                res.statusCode = 500;
+                res.send("Error on execute finding family");
+                return;
+            }
+            console.log("Debug: post /tasks/progress/:id " + user);
+            console.log("Debug: post /tasks/progress/:id task: " + task);
+            // push to message queue
+            buffer["name"] = "task-progress";
+            buffer["user"] = user;
+            buffer["task"] = task;
+            console.log("Debug: post /tasks/progress/:id after task: " + task);
+            taskchannel.sendToQueue(
+                "taskQueue",
+                Buffer.from(JSON.stringify(buffer)),
+                {persistent: true}
+            );
+            res.statusCode = 200;
+            res.setHeader('Content-Type', 'application/json');
+            res.send(JSON.stringify(task));
+        });
+    } else {
+        // If not return 401.
+        res.statusCode = 401;
+        res.send("no X-User header in the request");
+        return;
+    }
+});
+
+// POST /tasks/done/:taskid
+// If a user is authenticated(member) and finished his/her task,
+// delete task for him/her private task list and update user's point
+app.post('/tasks/done/:id', (req, res, next) => {
+    // Check whether user is authenticated using X-user header
+    let userJSON = req.get("X-User");
+    if (userJSON) {
+        let user = JSON.parse(userJSON);
+        var id = req.params.id;
+        console.log("Debug: post /tasks/done/:id " + user);
+        if (user.personrole != "Member") {
+            res.statusCode = 401;
+            res.send("not proper role in the request");
+            return;
+        }
+        Task.findOneAndDelete({"_id": id}).exec((err, task) => {
+            if (err) {
+                res.statusCode = 500;
+                res.send("Error on execute finding family");
+                return;
+            }
+            // update the task
+            task.userID = user.id;
+            task.isProgress = true;
+            // push to message queue
+            buffer["name"] = "task-done";
+            buffer["user"] = user;
+            buffer["task"] = task;
+            buffer["point"] = task.point; // increment point!
+            taskchannel.sendToQueue(
+                "taskQueue",
+                Buffer.from(JSON.stringify(buffer)),
+                {persistent: true}
+            );
+            res.statusCode = 200;
+            res.send("Done!");
+            return;
+        });
+    } else {
+        // If not return 401.
+        res.statusCode = 401;
+        res.send("no X-User header in the request");
+        return;
+    }
+});
 
 var rabbiturl = 'amqp://' + rabbitaddr;
 amqp.connect(rabbiturl, function (err, conn) {

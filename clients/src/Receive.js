@@ -1,23 +1,19 @@
 import React from "react";
 
-export default class MainView extends React.Component {
+export default class ReceiveView extends React.Component {
     constructor(props) {
         super(props);
         this.state = {
-            // role: true,
-            href: "/admin",
-            data: null,
-            progress: "",
-            admin: true,
-            status: ""
+            roomname: ""
         }
         
     }
 
     componentWillMount() {
-        fetch(`https://localhost:443/tasks/${this.props.match.params.id}`, {
+        fetch(" https://localhost:443/receive", {
             method: "GET",
             headers: {
+                "Content-Type": "application/json",
                 "Authorization": window.localStorage.getItem("auth")
             }
         }).then(res => {
@@ -28,18 +24,17 @@ export default class MainView extends React.Component {
         }).then(data => {
             console.log(data)
             let users = data.map((info) => {
-                console.log(info.isProgress)
-                if (info.isProgress) {
-                    this.setState({progress: "Progressing"})
-                } else {
-                    this.setState({progress: "Not Assigned"})
-                }
+                this.setState({roomname: data.roomname})
+                let userName = info.firstname + " " + info.lastname
                 return (
                     <div className="row">
                         <div className="username col-md-4">
-                            <p>{info.description}</p>
-                            <button className="btn btn-warning my-2 my-sm-0 pull-right" onClick={() => this.handleProgress(info._id)} disabled={info.progress}>
-                                {this.state.progress}
+                            <p>{userName}</p>
+                            <button className="btn btn-sucessful my-2 my-sm-0 pull-right" onClick={() => this.handleAccept(info.id, info.roomname)} disabled={info.progress}>
+                                Accept
+                            </button>
+                            <button className="btn btn-alert my-2 my-sm-0 pull-right" onClick={() => this.handleReject(info.id, info.roomname)} disabled={info.progress}>
+                                Refuse
                             </button>
                         </div>
                     </div>
@@ -54,21 +49,38 @@ export default class MainView extends React.Component {
         )
     }
 
-    handleProgress(id) {
-        fetch(`https://localhost:443/tasks/progress/${id}`, {
+    handleAccept(id, roomname) {
+        console.log(id + " " + roomname)
+        fetch(" https://localhost:443/accept", {
             method: "POST",
             headers: {
+                "Content-Type": "application/json",
                 "Authorization": localStorage.getItem("auth")
-            }
-        }).then(res => {
-            if (!res.ok) { 
-                throw Error(res.statusText + " " + res.status);
-            }
-            return res.json()
-        }).then(data => {
-            console.log(data)
+            },
+            body: JSON.stringify({
+	            "personrole": "Member",     
+	            "roomname": roomname,
+	            "memberid": id 
+            }),
         }).catch(function(error) {
-            alert()
+            alert(error)
+        })
+    }
+
+    handleReject(id, roomname) {
+        fetch(" https://localhost:443/accept", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "Authorization": localStorage.getItem("auth")
+            },
+            body: JSON.stringify({
+	            "personrole": "default",     
+	            "roomname": roomname,
+	            "memberid": id 
+            }),
+        }).catch(function(error) {
+            alert(error)
         })
     }
 
@@ -99,9 +111,7 @@ export default class MainView extends React.Component {
                     </button>
                     <div className="collapse navbar-collapse" id="navbarNavAltMarkup">
                         <div className="navbar-nav">
-                            <a className="nav-item nav-link active" href="#">Home <span className="sr-only">(current)</span></a>
-                            <a className="nav-item nav-link" href={this.state.href}>UserBoard</a>
-                            <a className="nav-item nav-link" href="#">LeaderBoard</a>
+                            <a className="nav-item nav-link" href="/admin">UserBoard</a>
                         </div>
                     </div>
                     <button className="btn btn-warning my-2 my-sm-0 pull-right"
@@ -110,7 +120,7 @@ export default class MainView extends React.Component {
                     </button>
                 </nav>
                 <div>
-                    <h3 className="p-3">Current Task List</h3>
+                    <h3 className="p-3">Current Request</h3>
                 </div>
                 {this.state.data}
             </div>

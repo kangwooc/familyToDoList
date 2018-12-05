@@ -10,12 +10,6 @@ export default class DeepSignUpView extends React.Component {
         }
     }
 
-    // componentWillMount() {
-    //     let auth = window.localStorage.getItem('auth')
-    //     if (auth !== null ) {
-    //         this.props.history.push({pathname: '/users/me'})
-    //     }
-    // }
 
     handleNewFam() {
         this.props.history.push({pathname: '/newFam'})
@@ -24,6 +18,23 @@ export default class DeepSignUpView extends React.Component {
     handleJoin() {
         this.props.history.push({pathname: '/join'})
 
+    }
+
+    handleSignOut() {
+        fetch("https://localhost:443/sessions/mine", {
+            method: "DELETE",
+            headers: {
+                "Authorization": localStorage.getItem("auth")
+            }
+        }).then(res => {
+            if (!res.ok) { 
+                throw Error(res.statusText + " " + res.status);
+            }
+            localStorage.clear()
+            this.props.history.push({pathname: '/signin'})
+        }).catch(function(error) {
+            localStorage.clear()
+        })   
     }
 
     render() {
@@ -50,7 +61,9 @@ export default class DeepSignUpView extends React.Component {
                                         <button type="button" className="btn btn-outline-warning btn-lg" onClick={() => this.handleJoin()}>Join the Family</button>
                                     </div>
                                 </div>
-                                <Link to={ROUTES.signIn}>Go back to the Home</Link>
+                                <div className="p-3">
+                                        <button type="button" className="btn btn-outline-warning btn-lg" onClick={() => this.handleSignOut()}>SignOut</button>
+                                </div>
                             </div>
                         </div>
                     </div>
