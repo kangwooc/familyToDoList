@@ -37,4 +37,6 @@ type Store interface {
 	Delete(id int64) error
 
 	GetAdmin(roomname string, role string) (*User, error)
+	// update the score after receiving points from task
+	UpdateScore(id int64, point int) (*User, error)
 }

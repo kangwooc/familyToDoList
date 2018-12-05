@@ -213,8 +213,8 @@ func (s *MySQLStore) Update(id int64, updates *Updates) (*User, error) {
 	return s.GetByID(id)
 }
 
-func (s *MySQLStore) UpdateScore(id int64, updates *Updates) (*User, error) {
-	results, err := s.db.Exec(update, updates.Score, id)
+func (s *MySQLStore) UpdateScore(id int64, point int) (*User, error) {
+	results, err := s.db.Exec(update, point, id)
 	if err != nil {
 		return nil, fmt.Errorf("updating: %v", err)
 	}
