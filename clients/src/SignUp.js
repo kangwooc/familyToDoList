@@ -24,7 +24,7 @@ export default class SignUpView extends React.Component {
     }
 
     handleSignUp() {
-        fetch("https://127.0.0.1:443/v1/users", {
+        fetch("https://localhost:443/users", {
             method: "POST",
             headers: {
                 "Content-Type": "application/json"
@@ -36,16 +36,19 @@ export default class SignUpView extends React.Component {
 	            "FirstName": this.state.firstName,   
 	            "LastName": this.state.lastName     
             }),
+            mode: "cors",
+            cache: "default",
         }).then(res => {
             if (!res.ok) { 
                 throw Error(res.statusText + " " + res.status);
             }
-            localStorage.setItem("auth", res.headers.get("Authorization"))
+            console.log(res.headers.get("Authorization"));
+            localStorage.setItem("auth", res.headers.get('Authorization'));
             return res.json()
         }).then(data => {
             console.log(data)
-            // this.setState({id: data.id})
-            // this.props.history.push({pathname: '/deepSign'})
+            this.setState({id: data.id})
+            this.props.history.push({pathname: '/deepSign'})
         }).catch(function(error) {
             let errorType = document.createElement("p")
             let errorMessage = document.createTextNode("Error to save your data " + error)

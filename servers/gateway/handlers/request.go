@@ -171,6 +171,7 @@ func (context *HandlerContext) AcceptRequest(w http.ResponseWriter, r *http.Requ
 			return
 		}
 		q, _ := context.User.GetByID(accept.MemberID)
+		
 		log.Printf("mem id %v", q)
 		w.Header().Set("Content-Type", "text/plain")
 		w.Write([]byte("Request complete!"))
