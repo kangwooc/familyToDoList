@@ -37,7 +37,7 @@ func NewMySQLStore(db *sql.DB) *MySQLStore {
 //new primary key value
 func (s *MySQLStore) Insert(user *User) (*User, error) {
 	results, err := s.db.Exec(insert,
-		user.UserName, user.PassHash, user.FirstName, user.LastName, user.PhotoURL, user.Role, user.RoomName, &user.Score)
+		user.UserName, user.PassHash, user.FirstName, user.LastName, user.PhotoURL, user.Role, user.RoomName, user.Score)
 	if err != nil {
 		return nil, fmt.Errorf("executing insert: %v", err)
 	}

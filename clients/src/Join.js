@@ -13,12 +13,12 @@ export default class JoinView extends React.Component {
         }
     }
 
-    componentWillMount() {
-        let auth = window.localStorage.getItem('auth')
-        if (auth === null ) {
-            this.props.history.push({pathname: '/signin'})
-        }
-    }
+    // componentWillMount() {
+    //     let auth = window.localStorage.getItem('auth')
+    //     if (auth === null ) {
+    //         this.props.history.push({pathname: '/signin'})
+    //     }
+    // }
     // this.props.match.params.id
 
     handleSearch() {
@@ -30,13 +30,16 @@ export default class JoinView extends React.Component {
             },
             body: JSON.stringify({
 	            "Role": this.state.personrole,     
-                "RoomName": this.state.roomname,     
+                "roomname": this.state.roomname,     
             }),
-            mode: "cors",
-            cache: "default",
+
         }).then(res => {
-            console.log("111")
+
             if (!res.ok) { 
+                console.log( this.state.personrole)
+
+                console.log("111")
+
                 throw Error(res.statusText + " " + res.status);
             }
             // localStorage.getItem("auth");
@@ -49,7 +52,7 @@ export default class JoinView extends React.Component {
             let errorType = document.createElement("p")
             let errorMessage = document.createTextNode("Error to save your data " + error)
             errorType.appendChild(errorMessage)
-            document.getElementById("result").appendChild(errorType)
+            // document.getElementById("result").appendChild(errorType)
         })
     }
 
@@ -73,11 +76,10 @@ export default class JoinView extends React.Component {
                                 <div className="container">
                                     <form className="form-inline">
                                         <div className="form-group mx-sm-3 mb-2">
-                                            <label hmtlFor="Search" className="sr-only">Search</label>
-                                            <input type="Search" className="form-control" placeholder="Search"/>
+                                            <input type="Search" className="form-control" placeholder="Search"  onInput={evt => this.setState({roomname: evt.target.value})} />
                                         </div>
-                                        <button type="submit" className="btn btn-warning mb-2" onClick={() => this.handleSearch()}>Search</button>
                                     </form>
+                                        <button type="submit" className="btn btn-warning mb-2" onClick={() => this.handleSearch()}>Search</button>
                                     <Link to={ROUTES.signIn}>Go back to Homepage</Link>
                                 </div>
                             </div>
