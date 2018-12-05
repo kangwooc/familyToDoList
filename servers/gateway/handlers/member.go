@@ -11,8 +11,7 @@ import (
 	"strings"
 )
 
-//fn ln id photourl
-// delete member
+// DeleteHandler is for deleting member
 func (context *HandlerContext) DeleteHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method == "DELETE" {
 		// get the member info
@@ -63,7 +62,7 @@ func (context *HandlerContext) DeleteHandler(w http.ResponseWriter, r *http.Requ
 	}
 }
 
-// display all members for each room
+// DisplayHandler is displaying all members for each room
 // get localhost/room/1
 func (context *HandlerContext) DisplayHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method == "GET" {

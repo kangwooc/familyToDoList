@@ -58,7 +58,7 @@ func NewWebSocketsHandler(notifier *Notifier) *WebSocketsHandler {
 	}
 }
 
-//ServeHTTP implements the http.Handler interface for the WebSocketsHandler
+// WebSocketsHandler implements the http.Handler interface for the WebSocketsHandler
 func (ctx *HandlerContext) WebSocketsHandler(w http.ResponseWriter, r *http.Request) {
 	log.Println("received websocket upgrade request")
 	sessionState := &SessionState{}
