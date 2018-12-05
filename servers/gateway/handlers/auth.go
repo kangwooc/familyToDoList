@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"final-project-zco/servers/gateway/models/users"
 	"final-project-zco/servers/gateway/sessions"
-	"fmt"
+	"fmt" // "log"
 	"log"
 	"net/http"
 	"path"
@@ -82,6 +82,16 @@ func (context *HandlerContext) CreateHandler(w http.ResponseWriter, r *http.Requ
 		}
 
 		numID := sessionState.User.ID
+		u, err := context.User.GetByID(numID)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusBadRequest)
+			return
+		}
+		log.Println("user role %v", u.Role)
+		if u.Role == "Admin" {
+			http.Error(w, "User must be default to create a room", http.StatusUnauthorized)
+			return
+		}
 		var family *users.FamilyRoom
 		if err := json.NewDecoder(r.Body).Decode(&family); err != nil {
 			http.Error(w, "Decoding problem", http.StatusBadRequest)
@@ -94,17 +104,24 @@ func (context *HandlerContext) CreateHandler(w http.ResponseWriter, r *http.Requ
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
+
 		sessionState.User.Role = admin.Role
 		sessionState.User.RoomName = admin.RoomName
 		if err = context.Session.Save(sid, sessionState); err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
+		se := &SessionState{}
+
+		context.Session.Get(sid, se)
+		log.Println("user added role se %v", se.User.Role)
+
 		if err = added.ApplyUpdates(admin); err != nil {
 			http.Error(w, err.Error(), http.StatusBadRequest)
 			return
 		}
-		log.Printf("this is user yo %v", added)
+		log.Println("user added role %v", added.Role)
+
 		// insert into family table
 		fam, err := context.Family.InsertFam(family)
 		if err != nil {

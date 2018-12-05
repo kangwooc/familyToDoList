@@ -44,23 +44,27 @@ func (context *HandlerContext) JoinHandler(w http.ResponseWriter, r *http.Reques
 		}
 
 		member := &users.Updates{RoomName: update.RoomName, Role: "Waiting"}
-		// update the user role to be admin
 		log.Printf("this is qqq id %d", numID)
+		log.Printf("this is roomname from userupdate %d", update.RoomName)
 		added, err := context.User.Update(numID, member)
 		if err != nil {
-			log.Printf("yo wrong")
+			log.Printf("aaa")
+
+			log.Printf(err.Error())
+
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
 		sessionState.User.Role = member.Role
 		sessionState.User.RoomName = member.RoomName
 		if err = context.Session.Save(sid, sessionState); err != nil {
+			log.Printf("adddaa")
+
+			log.Printf(err.Error())
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
 		if err = added.ApplyUpdates(member); err != nil {
-			log.Printf("yo wrong222")
-
 			http.Error(w, err.Error(), http.StatusBadRequest)
 			return
 		}
@@ -171,7 +175,7 @@ func (context *HandlerContext) AcceptRequest(w http.ResponseWriter, r *http.Requ
 			return
 		}
 		q, _ := context.User.GetByID(accept.MemberID)
-		
+
 		log.Printf("mem id %v", q)
 		w.Header().Set("Content-Type", "text/plain")
 		w.Write([]byte("Request complete!"))
