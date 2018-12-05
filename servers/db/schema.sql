@@ -15,7 +15,8 @@ create table if not exists users (
     lastname varchar(128) not null,
     photourl varchar(2083) not null,
     personrole VARCHAR(255),
-    roomname varchar(128)
+    roomname varchar(128),
+    score INT
 );
 
 create table if not exists userlogin (
