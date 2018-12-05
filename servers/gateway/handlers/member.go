@@ -12,7 +12,6 @@ import (
 )
 
 //fn ln id photourl
-
 // delete member
 func (context *HandlerContext) DeleteHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method == "DELETE" {
@@ -24,15 +23,14 @@ func (context *HandlerContext) DeleteHandler(w http.ResponseWriter, r *http.Requ
 		}
 
 		sessionState := &SessionState{}
-		_, err := sessions.GetState(r, context.SigningKey, context.Session, sessionState)
-		if err != nil {
+
+		if _, err := sessions.GetState(r, context.SigningKey, context.Session, sessionState); err != nil {
 			http.Error(w, "User must be authenticated", http.StatusUnauthorized)
 			return
 		}
 
 		// check whether current user is an admin
 		if sessionState.User.Role != "Admin" {
-			log.Printf("rrrrole %v", sessionState.User.Role)
 			http.Error(w, "User must be admin to delete member", http.StatusUnauthorized)
 			return
 		}
@@ -45,14 +43,11 @@ func (context *HandlerContext) DeleteHandler(w http.ResponseWriter, r *http.Requ
 		update := &users.Updates{Role: "Default", RoomName: ""}
 		u, err := context.User.UpdateToMember(user.ID, update)
 		if err != nil {
-			log.Printf("what is wrong", sessionState.User.Role)
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
-
-		err = u.ApplyUpdates(update)
-		if err != nil {
-			log.Printf("what is wrofffng222", sessionState.User.Role)
+		if err = u.ApplyUpdates(update); err != nil {
+			// log.Printf("what is wrofffng222", sessionState.User.Role)
 			http.Error(w, err.Error(), http.StatusBadRequest)
 			return
 		}

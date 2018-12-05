@@ -45,10 +45,8 @@ func (context *HandlerContext) JoinHandler(w http.ResponseWriter, r *http.Reques
 
 		member := &users.Updates{RoomName: update.RoomName, Role: "Waiting"}
 		// update the user role to be admin
-		log.Printf("this is qqq id %d", numID)
 		added, err := context.User.Update(numID, member)
 		if err != nil {
-			log.Printf("yo wrong")
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
@@ -59,7 +57,6 @@ func (context *HandlerContext) JoinHandler(w http.ResponseWriter, r *http.Reques
 			return
 		}
 		if err = added.ApplyUpdates(member); err != nil {
-			log.Printf("yo wrong222")
 
 			http.Error(w, err.Error(), http.StatusBadRequest)
 			return
@@ -88,7 +85,7 @@ func (context *HandlerContext) JoinHandler(w http.ResponseWriter, r *http.Reques
 	}
 }
 
-// get
+// ReceiveHandler is the method that receive the request
 func (context *HandlerContext) ReceiveHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method == http.MethodGet {
 		//Check authority and get context.Request if it's empty return empty json.
@@ -103,9 +100,16 @@ func (context *HandlerContext) ReceiveHandler(w http.ResponseWriter, r *http.Req
 			http.Error(w, "User must be authenticated", http.StatusUnauthorized)
 			return
 		}
-		if sessionState.User.Role != "Admin" {
-			http.Error(w, "Admin only can get", http.StatusUnauthorized)
+		switch sessionState.User.Role {
+		case "Admin":
+			break
+		case "Waiting":
+			break
+		default:
+			http.Error(w, "Admin and Waiting can get", http.StatusUnauthorized)
 			return
+			break
+
 		}
 		numID := sessionState.User.ID
 		request, ok := context.Request[numID]
@@ -128,7 +132,7 @@ func (context *HandlerContext) ReceiveHandler(w http.ResponseWriter, r *http.Req
 	}
 }
 
-// post
+// AcceptRequest is the method that admin can accept the requests
 func (context *HandlerContext) AcceptRequest(w http.ResponseWriter, r *http.Request) {
 	if r.Method == http.MethodPost {
 		header := r.Header.Get("Content-Type")
@@ -137,8 +141,7 @@ func (context *HandlerContext) AcceptRequest(w http.ResponseWriter, r *http.Requ
 			return
 		}
 		sessionState := &SessionState{}
-		_, err := sessions.GetState(r, context.SigningKey, context.Session, sessionState)
-		if err != nil {
+		if _, err := sessions.GetState(r, context.SigningKey, context.Session, sessionState); err != nil {
 			http.Error(w, "User must be authenticated", http.StatusUnauthorized)
 			return
 		}
@@ -147,32 +150,24 @@ func (context *HandlerContext) AcceptRequest(w http.ResponseWriter, r *http.Requ
 			return
 		}
 		var accept status
-		log.Printf("this is body yo %v", r.Body)
-
-		err = json.NewDecoder(r.Body).Decode(&accept)
-		if err != nil {
+		if err := json.NewDecoder(r.Body).Decode(&accept); err != nil {
 			http.Error(w, "Decoding problem", http.StatusBadRequest)
 			return
 		}
 		up := &users.Updates{Role: "Member", RoomName: accept.RoomName}
 		added, err := context.User.UpdateToMember(accept.MemberID, up)
+		log.Printf("Debug: Admin: ", sessionState.User)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusBadRequest)
 			return
 		}
-		// sessionState.added.Role = "Member"
-		// sessionState.added.RoomName = accept.RoomName
-		// if err = context.Session.Save(sid, sessionState); err != nil {
-		// 	http.Error(w, err.Error(), http.StatusInternalServerError)
-		// 	return
-		// }
 		if err = added.ApplyUpdates(up); err != nil {
 			http.Error(w, err.Error(), http.StatusBadRequest)
 			return
 		}
+
 		q, _ := context.User.GetByID(accept.MemberID)
-		
-		log.Printf("mem id %v", q)
+		log.Printf("Debug: mem id %v", q)
 		w.Header().Set("Content-Type", "text/plain")
 		w.Write([]byte("Request complete!"))
 	} else {

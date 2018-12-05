@@ -2,7 +2,6 @@ package sessions
 
 import (
 	"errors"
-	"log"
 	"net/http"
 	"strings"
 )
@@ -24,7 +23,7 @@ func BeginSession(signingKey string, store Store, sessionState interface{}, w ht
 	if err != nil {
 		return InvalidSessionID, err
 	}
-	log.Printf("begin session: %v", sessionState)
+	// log.Printf("begin session: %v", sessionState)
 	if err = store.Save(id, sessionState); err != nil {
 		return InvalidSessionID, err
 	}
@@ -73,7 +72,7 @@ func GetState(r *http.Request, signingKey string, store Store, sessionState inte
 	if err = store.Get(id, sessionState); err != nil {
 		return InvalidSessionID, ErrStateNotFound
 	}
-	log.Printf("get state: %v", sessionState)
+	// log.Printf("get state: %v", sessionState)
 
 	return id, nil
 }

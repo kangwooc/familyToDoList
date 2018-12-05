@@ -12,12 +12,27 @@ var Schema = mongoose.Schema;
 // https://stackoverflow.com/questions/17899750/how-can-i-generate-an-objectid-with-mongoose
 // https://stackoverflow.com/questions/10006218/which-schematype-in-mongoose-is-best-for-timestamp
 var taskSchema = new Schema({
-    description: String,
+    description: {type: String, unique: true},
     point: {type: Number, default: 5},
     isProgress: {type: Boolean, default: false},
-    isDone: {type: Boolean, default: false},
-    FamilyID: Number
+    familyID: Number,
+    familyRoomName: String,
+    userID: Number
 });
+// function for update task
+// https://stackoverflow.com/questions/16882938/how-to-check-if-that-data-already-exist-in-the-database-during-update-mongoose
+taskSchema.statics.addTask = function(task, cb) {
+    Task.find({description : task.description}).exec(function(err, docs) {
+        if (docs.length) {
+            cb('documents exists already', null);
+        } else {
+            task.save(function (err) {
+                cb(err, docs);
+            });
+        }
+    });
+}
+
 // create a model for our task
 var Task = mongoose.model('Task', taskSchema);
 // make this available to our users in our Node applications

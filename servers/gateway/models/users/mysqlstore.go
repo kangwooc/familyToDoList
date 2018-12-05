@@ -8,11 +8,12 @@ import (
 )
 
 const (
-	insert         = "insert into users (username,passhash,firstname,lastname,photourl,personrole,roomname) values ( ?,?,?,?,?,?,? )"
+	insert         = "insert into users (username,passhash,firstname,lastname,photourl,personrole,roomname,score) values ( ?,?,?,?,?,?,?,? )"
 	selectID       = `Select * From users Where id=?`
 	selectAdmin    = `Select * From users Where personrole=? And roomname=?`
 	getUserName    = `Select * From users Where username=?`
 	update         = "update users set personrole=? where id=?"
+	updatePoint    = "update users set score=? where id=?"
 	updateToMember = "update users set roomname=?, personrole=? where id=?"
 	del            = "delete from users where id=?"
 )
@@ -36,7 +37,7 @@ func NewMySQLStore(db *sql.DB) *MySQLStore {
 //new primary key value
 func (s *MySQLStore) Insert(user *User) (*User, error) {
 	results, err := s.db.Exec(insert,
-		user.UserName, user.PassHash, user.FirstName, user.LastName, user.PhotoURL, user.Role, user.RoomName)
+		user.UserName, user.PassHash, user.FirstName, user.LastName, user.PhotoURL, user.Role, user.RoomName, &user.Score)
 	if err != nil {
 		return nil, fmt.Errorf("executing insert: %v", err)
 	}
@@ -84,7 +85,7 @@ func getByHelper(s *MySQLStore, identifier string, command string) (*User, error
 	}
 	user := &User{}
 	if err := row.Scan(&user.ID, &user.UserName, &user.PassHash,
-		&user.FirstName, &user.LastName, &user.PhotoURL, &user.Role, &user.RoomName); err != nil {
+		&user.FirstName, &user.LastName, &user.PhotoURL, &user.Role, &user.RoomName, &user.Score); err != nil {
 		if err == sql.ErrNoRows {
 			return nil, ErrUserNotFound
 		}
@@ -99,7 +100,7 @@ func (s *MySQLStore) GetByID(id int64) (*User, error) {
 	row := s.db.QueryRow(selectID, id)
 	user := &User{}
 	if err := row.Scan(&user.ID, &user.UserName, &user.PassHash,
-		&user.FirstName, &user.LastName, &user.PhotoURL, &user.Role, &user.RoomName); err != nil {
+		&user.FirstName, &user.LastName, &user.PhotoURL, &user.Role, &user.RoomName, &user.Score); err != nil {
 		if err == sql.ErrNoRows {
 			return nil, ErrUserNotFound
 		}
@@ -112,7 +113,7 @@ func (s *MySQLStore) GetAdmin(roomname string, role string) (*User, error) {
 	row := s.db.QueryRow(selectAdmin, role, roomname)
 	user := &User{}
 	if err := row.Scan(&user.ID, &user.UserName, &user.PassHash,
-		&user.FirstName, &user.LastName, &user.PhotoURL, &user.Role, &user.RoomName); err != nil {
+		&user.FirstName, &user.LastName, &user.PhotoURL, &user.Role, &user.RoomName, &user.Score); err != nil {
 		if err == sql.ErrNoRows {
 			return nil, ErrUserNotFound
 		}
@@ -127,7 +128,7 @@ func (s *MySQLStore) GetByUserName(username string) (*User, error) {
 	row := s.db.QueryRow(getUserName, username)
 	user := &User{}
 	if err := row.Scan(&user.ID, &user.UserName, &user.PassHash,
-		&user.FirstName, &user.LastName, &user.PhotoURL, &user.Role, &user.RoomName); err != nil {
+		&user.FirstName, &user.LastName, &user.PhotoURL, &user.Role, &user.RoomName, &user.Score); err != nil {
 		if err == sql.ErrNoRows {
 			return nil, ErrUserNotFound
 		}
@@ -167,6 +168,7 @@ func (s *MySQLStore) GetRoomName(id int64) (*FamilyRoom, error) {
 	}
 	return family, nil
 }
+
 func (s *MySQLStore) GetByRoomName(roomname string) ([]*User, error) {
 	var res []*User
 	rows, err := s.db.Query("Select * From users Where roomname=? And personrole=?", roomname, "Member")
@@ -178,7 +180,7 @@ func (s *MySQLStore) GetByRoomName(roomname string) ([]*User, error) {
 	for rows.Next() {
 		user := &User{}
 		if err := rows.Scan(&user.ID, &user.UserName, &user.PassHash,
-			&user.FirstName, &user.LastName, &user.PhotoURL, &user.Role, &user.RoomName); err != nil {
+			&user.FirstName, &user.LastName, &user.PhotoURL, &user.Role, &user.RoomName, &user.Score); err != nil {
 			if err == sql.ErrNoRows {
 				return nil, ErrUserNotFound
 			}
@@ -194,6 +196,25 @@ func (s *MySQLStore) GetByRoomName(roomname string) ([]*User, error) {
 //nil and ErrUserNotFound if the task ID does not exist.
 func (s *MySQLStore) Update(id int64, updates *Updates) (*User, error) {
 	results, err := s.db.Exec(update, updates.Role, id)
+	if err != nil {
+		return nil, fmt.Errorf("updating: %v", err)
+	}
+	affected, err := results.RowsAffected()
+	if err != nil {
+		return nil, fmt.Errorf("getting rows affected: %v", err)
+	}
+
+	//if no rows were affected, then the requested
+	//ID was not in the database
+	if affected == 0 {
+		log.Printf("zero row")
+		return nil, ErrUserNotFound
+	}
+	return s.GetByID(id)
+}
+
+func (s *MySQLStore) UpdateScore(id int64, updates *Updates) (*User, error) {
+	results, err := s.db.Exec(update, updates.Score, id)
 	if err != nil {
 		return nil, fmt.Errorf("updating: %v", err)
 	}

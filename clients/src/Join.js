@@ -7,7 +7,9 @@ export default class JoinView extends React.Component {
     constructor(props) {
         super(props);
         this.state = {
-            search: ""
+            // search: ""
+            personrole: "",
+            roomname: ""
         }
     }
 
@@ -20,34 +22,35 @@ export default class JoinView extends React.Component {
     // this.props.match.params.id
 
     handleSearch() {
-        // fetch("https://localhost:443/join", {
-        //     method: "POST",
-        //     headers: {
-        //         "Content-Type": "application/json"
-        //     },
-        //     body: JSON.stringify({
-	    //         "Role": this.state.personrole,     
-        //         "RoomName": this.state.roomname,     
-        //     }),
-        //     mode: "cors",
-        //     cache: "default",
-        // }).then(res => {
-        //     console.log("111")
-        //     if (!res.ok) { 
-        //         throw Error(res.statusText + " " + res.status);
-        //     }
-        //     localStorage.setItem("auth", res.headers.get('Authorization'));
-        //     return res.json()
-        // }).then(data => {
-        //     console.log(data)
-        //     this.setState({id: data.id})
-        //     this.props.history.push({pathname: '/main/' + data.id})    // go to main task list
-        // }).catch(function(error) {
-        //     let errorType = document.createElement("p")
-        //     let errorMessage = document.createTextNode("Error to save your data " + error)
-        //     errorType.appendChild(errorMessage)
-        //     document.getElementById("result").appendChild(errorType)
-        // })
+        fetch("https://localhost:443/join", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "Authorization":localStorage.getItem("auth")
+            },
+            body: JSON.stringify({
+	            "Role": this.state.personrole,     
+                "RoomName": this.state.roomname,     
+            }),
+            mode: "cors",
+            cache: "default",
+        }).then(res => {
+            console.log("111")
+            if (!res.ok) { 
+                throw Error(res.statusText + " " + res.status);
+            }
+            // localStorage.getItem("auth");
+            return res.json()
+        }).then(data => {
+            console.log(data)
+            this.setState({id: data.id})
+            this.props.history.push({pathname: '/main'})    // go to main task list
+        }).catch(function(error) {
+            let errorType = document.createElement("p")
+            let errorMessage = document.createTextNode("Error to save your data " + error)
+            errorType.appendChild(errorMessage)
+            document.getElementById("result").appendChild(errorType)
+        })
     }
 
     render() {
