@@ -31,7 +31,11 @@ func (context *HandlerContext) JoinHandler(w http.ResponseWriter, r *http.Reques
 			return
 		}
 		numID := sessionState.User.ID
-
+		// if admin, no allowed to join
+		if sessionState.User.Role == "Admin" {
+			http.Error(w, "Admin can not join other room", http.StatusBadRequest)
+			return
+		}
 		var update *users.Updates
 		// decode the entered family room name
 		if err := json.NewDecoder(r.Body).Decode(&update); err != nil {
@@ -39,7 +43,7 @@ func (context *HandlerContext) JoinHandler(w http.ResponseWriter, r *http.Reques
 			return
 		}
 
-		member := &users.Updates{RoomName: update.RoomName, Role: update.Role}
+		member := &users.Updates{RoomName: update.RoomName, Role: "Waiting"}
 		// update the user role to be admin
 		log.Printf("this is qqq id %d", numID)
 		added, err := context.User.Update(numID, member)
@@ -133,7 +137,7 @@ func (context *HandlerContext) AcceptRequest(w http.ResponseWriter, r *http.Requ
 			return
 		}
 		sessionState := &SessionState{}
-		sid, err := sessions.GetState(r, context.SigningKey, context.Session, sessionState)
+		_, err := sessions.GetState(r, context.SigningKey, context.Session, sessionState)
 		if err != nil {
 			http.Error(w, "User must be authenticated", http.StatusUnauthorized)
 			return
@@ -144,23 +148,24 @@ func (context *HandlerContext) AcceptRequest(w http.ResponseWriter, r *http.Requ
 		}
 		var accept status
 		log.Printf("this is body yo %v", r.Body)
+
 		err = json.NewDecoder(r.Body).Decode(&accept)
 		if err != nil {
 			http.Error(w, "Decoding problem", http.StatusBadRequest)
 			return
 		}
-		up := &users.Updates{Role: accept.Role, RoomName: accept.RoomName}
+		up := &users.Updates{Role: "Member", RoomName: accept.RoomName}
 		added, err := context.User.UpdateToMember(accept.MemberID, up)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusBadRequest)
 			return
 		}
-		sessionState.User.Role = accept.Role
-		sessionState.User.RoomName = accept.RoomName
-		if err = context.Session.Save(sid, sessionState); err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
-		}
+		// sessionState.added.Role = "Member"
+		// sessionState.added.RoomName = accept.RoomName
+		// if err = context.Session.Save(sid, sessionState); err != nil {
+		// 	http.Error(w, err.Error(), http.StatusInternalServerError)
+		// 	return
+		// }
 		if err = added.ApplyUpdates(up); err != nil {
 			http.Error(w, err.Error(), http.StatusBadRequest)
 			return
