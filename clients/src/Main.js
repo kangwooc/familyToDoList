@@ -5,9 +5,51 @@ export default class MainView extends React.Component {
         super(props);
         this.state = {
             role: true,
-            href: "/admin"
+            href: "/admin",
+            sock: null
         }
         
+    }
+
+    componentWillMount() {
+        this.setState({ working: true });
+        fetch(`https://localhost:443/tasks/${this.props.match.params.familyID}`, {
+            method: "GET",
+            headers: {
+                "Authorization": window.localStorage.getItem("auth")
+            }
+        }).then(res => {
+            if (!res.ok) { 
+                throw Error(res.statusText + " " + res.status);
+            }
+            return res.json()
+        }).then(data =>{
+            console.log(data)
+        }).catch(error => {
+                alert(error)
+                localStorage.clear()
+                this.props.history.push({pathname: '/signin'})
+            }        
+        )
+    }
+    componentDidMount() {
+        let sock;
+        document.addEventListener("DOMContentLoaded", (event) => {
+            let auth = localStorage.getItem("auth");
+
+            sock = new WebSocket("wss://info441api.juan3674.me/v1/ws?auth=" + auth);
+
+            sock.onopen = () => {
+                console.log("Connection Opened");
+            };
+            sock.onclose = () => {
+                console.log("Connection Closed");
+            };
+            sock.onmessage = (msg) => {
+                console.log("Message received " + msg.data);
+            };
+            this.setState({sock: sock})
+        })
     }
 
     handleSignOut() {

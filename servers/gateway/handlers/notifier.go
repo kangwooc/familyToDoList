@@ -6,7 +6,6 @@ import (
 	"log"
 	"sync"
 
-	"final-project-zco/servers/gateway/handlers"
 	"final-project-zco/servers/gateway/models/users"
 
 	"github.com/gorilla/websocket"
@@ -78,14 +77,14 @@ type Message struct {
 // RemoveConnection is the method that remove connection
 // It is a thread-safe method for inserting a connection
 func (n *Notifier) RemoveConnection(conn *websocket.Conn, userID int64) {
-	n.lock.Lock()
+	n.mx.Lock()
 	// delete socket connection
-	delete(s.Connections, userID)
-	n.lock.Unlock()
+	delete(n.connections, userID)
+	n.mx.Unlock()
 }
 
 // Start starts the notification loop
-func (n *Notifier) Start(msgs <-chan amqp.Delivery, name string, ctx *handlers.HandlerContext) {
+func (n *Notifier) Start(msgs <-chan amqp.Delivery, name string, ctx *HandlerContext) {
 	log.Println("starting notifier loop")
 	// for msg := range msgs {
 	n.mx.Lock()
@@ -110,7 +109,7 @@ func (n *Notifier) Start(msgs <-chan amqp.Delivery, name string, ctx *handlers.H
 				fmt.Errorf("Error while running GetAdmin: %v", err)
 				return
 			}
-			users := append(users, admin)
+			users = append(users, admin)
 			// if the done
 			if m.name == "task-done" {
 				// should update points to mysql
@@ -119,7 +118,7 @@ func (n *Notifier) Start(msgs <-chan amqp.Delivery, name string, ctx *handlers.H
 			for _, user := range users {
 				conn := n.connections[user.ID]
 				// if Writemessage has an error, break the loop.
-				if err := conn.WriteMessage(m, d.Body); err != nil {
+				if err := conn.WriteMessage(1, d.Body); err != nil {
 					n.RemoveConnection(conn, user.ID)
 					break
 				}

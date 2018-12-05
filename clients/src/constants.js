@@ -4,7 +4,7 @@ export const ROUTES = {
     deepSign: "/deepSign",
     newFam: "/newFam",
     join: "/join",
-    main: "/main",
+    main: "/main/:familyID",
     member: "/member",
     admin: "/admin",
     add: "/add"
