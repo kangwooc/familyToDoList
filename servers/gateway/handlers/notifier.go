@@ -116,7 +116,7 @@ func (n *Notifier) Start(msgs <-chan amqp.Delivery) {
 		// 	// 	//if there is an error while writing message remove connection
 		// 	// }
 		// }
-	}
+	// }
 	//TODO: start a never-ending loop that reads
 	//new events out of the `n.eventQ` and broadcasts
 	//them to all WebSocket connections.
