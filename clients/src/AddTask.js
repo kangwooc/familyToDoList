@@ -7,47 +7,50 @@ export default class AddTaskView extends React.Component {
     constructor(props) {
         super(props);
         this.state = {
-            task: ""
+            task: "",
+            roomname: localStorage.getItem("roomname"),
         }
         this.handleSubmit = this.handleSubmit.bind(this)
     }
+   
+    componentWillMount() {
+        let auth = window.localStorage.getItem('auth')
+        if (auth === null ) {
+            this.props.history.push({pathname: '/signin'})
+        } else {
 
-    // componentWillMount() {
-    //     let auth = window.localStorage.getItem('auth')
-    //     if (auth !== null ) {
-    //         this.props.history.push({pathname: '/users/me'})
-    //     }
-    // }
+        }
+    }
 
     handleSubmit(e) {
-        e.preventDefault()
-        console.log(`https://localhost:443/tasks/${window.localStorage.getItem("roomid")}`)
-        const task = this.state.task
-        console.log(task)
-
-        const data = {
-            description: task,
-        }
-
-        fetch(`https://localhost:443/tasks/${window.localStorage.getItem("roomid")}`, {
+        e.preventDefault();
+        console.log(`https://localhost:443/tasks/${window.localStorage.getItem("roomname")}`);
+        console.log(this.state);
+        var body = { description: this.state.task };
+        fetch(`https://localhost:443/tasks/${window.localStorage.getItem("roomname")}`, {
             method: "POST",
             headers: {
-                "Authorization": window.localStorage.getItem("auth")
+                "Authorization": window.localStorage.getItem("auth"),
+                Accept: 'application/json',
+                'Content-Type': 'application/json'
             },
-            body: JSON.stringify({"description": task})
+            body: JSON.stringify(body),
+            mode: "cors",
+            cache: "default",
         }).then(res => {
-            if (!res.ok) { 
+            if (!res.ok) {
                 throw Error(res.statusText + " " + res.status);
             }
-            return res.json()
-        }).then(data =>{
-            console.log(data)
+            return res.json();
+        }).then(data => {
+            console.log(data);
+            this.props.history.push({pathname: "/main/" + this.state.roomname.toLowerCase()})
         }).catch(error => {
                 alert(error)
                 localStorage.clear()
                 this.props.history.push({pathname: '/signin'})
-            }        
-        )
+            }
+        );
     }
 
 
@@ -61,9 +64,8 @@ export default class AddTaskView extends React.Component {
                     </button>
                     <div className="collapse navbar-collapse" id="navbarNavAltMarkup">
                         <div className="navbar-nav">
-                            <a className="nav-item nav-link" href='/main'>Home</a>
-                            <a className="nav-item nav-link" href="/admin">UserBoard</a>
-                            <a className="nav-item nav-link" href="#">LeaderBoard</a>
+                            <a className="nav-item nav-link" href={"/main/" + this.state.roomname.toLowerCase()}>Home</a>
+                            <a className="nav-item nav-link" href={"/admin/" + this.state.roomname.toLowerCase()}>UserBoard</a>
                         </div>
                     </div>
                     <button className="btn btn-warning my-2 my-sm-0 pull-right"
@@ -78,14 +80,12 @@ export default class AddTaskView extends React.Component {
                                 <div className="d-flex justify-content-center pt-4 pb-5">
                                     <h4>Add New Task</h4>
                                 </div>
-                                <form className="form-inline" onSubmit={this.handleSubmit}>
+                                <form className="form-inline">
                                     <div className="form-group mx-sm-3 mb-2">
                                         <input className="form-control" placeholder="Add Task"
                                             onInput={evt => this.setState({ task: evt.target.value})} />
-                                            {console.log(this.state.task)}
                                     </div>
-                                
-                                <button type="submit" className="btn btn-warning mt-2 mb-2 ml-2">Submit</button>
+                                    <button className="btn btn-warning mt-2 mb-2 ml-2" onClick={(evt) => this.handleSubmit(evt)}>Submit</button>
                                 </form>
                             </div>
                         </div>

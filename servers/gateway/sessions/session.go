@@ -24,7 +24,7 @@ func BeginSession(signingKey string, store Store, sessionState interface{}, w ht
 	if err != nil {
 		return InvalidSessionID, err
 	}
-	log.Printf("begin session: %v", sessionState)
+	// log.Printf("begin session: %v", sessionState)
 	if err = store.Save(id, sessionState); err != nil {
 		return InvalidSessionID, err
 	}
@@ -34,32 +34,15 @@ func BeginSession(signingKey string, store Store, sessionState interface{}, w ht
 
 //GetSessionID extracts and validates the SessionID from the request headers
 func GetSessionID(r *http.Request, signingKey string) (SessionID, error) {
-	// Reference: https://gist.github.com/sambengtson/bc9f76331065f09e953f
-	var str string
-	header := strings.SplitN(r.Header.Get(headerAuthorization), " ", 2)
-	if len(header) == 0 {
-		// If no Authorization header is present, find the "auth" query string parameter and split into 2
-		authQuery := strings.SplitN(r.FormValue(paramAuthorization), " ", 2)
-		// If it doesn't have anything on neither, return empty SessionID and error called ErrNoSessionID
-		if len(authQuery) < 2 {
-			return InvalidSessionID, ErrNoSessionID
-		}
-		str = authQuery[1]
-	} else {
-		// Split the Authorization hearer into 2 (e.g. ["Bearer", "SessionID"])
-		if header[0] != "Bearer" {
-			return InvalidSessionID, ErrInvalidScheme
-		}
-		str = header[1]
+	session := r.Header.Get(headerAuthorization)
+	if session == "" {
+		session = r.URL.Query().Get("auth")
 	}
-	// Validate sessionID from Authorization header
-	sid, err := ValidateID(str, signingKey)
-	// If it's invalid scheme, return sid and error called ErrInvalidScheme
-	if err != nil {
-		return InvalidSessionID, err
+
+	if !strings.Contains(session, schemeBearer) {
+		return InvalidSessionID, errors.New("the scheme prefix is wrong")
 	}
-	// If it's valid, return the SessionID.
-	return sid, nil
+	return ValidateID(strings.Replace(session, schemeBearer, "", -len(schemeBearer)), signingKey)
 }
 
 //GetState extracts the SessionID from the request,
@@ -68,12 +51,14 @@ func GetSessionID(r *http.Request, signingKey string) (SessionID, error) {
 func GetState(r *http.Request, signingKey string, store Store, sessionState interface{}) (SessionID, error) {
 	id, err := GetSessionID(r, signingKey)
 	if err != nil {
+		log.Printf("Debug GetState error %v", err)
 		return InvalidSessionID, ErrStateNotFound
 	}
 	if err = store.Get(id, sessionState); err != nil {
+		log.Printf("Debug GetState store error %v", err)
 		return InvalidSessionID, ErrStateNotFound
 	}
-	log.Printf("get state: %v", sessionState)
+	// log.Printf("get state: %v", sessionState)
 
 	return id, nil
 }

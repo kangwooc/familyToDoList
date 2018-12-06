@@ -7,9 +7,16 @@ export default class DeepSignUpView extends React.Component {
     constructor(props) {
         super(props);
         this.state = {
+          token: window.localStorage.getItem("auth")
         }
     }
-
+    
+    componentWillMount() {
+        let auth = window.localStorage.getItem('auth')
+        if (auth === null ) {
+            this.props.history.push({pathname: '/signin'})
+        }
+    }
 
     handleNewFam() {
         this.props.history.push({pathname: '/newFam'})
@@ -41,8 +48,8 @@ export default class DeepSignUpView extends React.Component {
         return (
             <div>
                 <header className="container-fluid bg-secondary text-white">
-                    <div className="row ">
-                        <div className="col-12 col-sm-12 col-md-12 col-lg-12 col-xl-12 pt-3 my-border" >
+                    <div className="row">
+                        <div className="col-12 col-sm-12 col-md-12 col-lg-12 col-xl-12 pt-3 my-border"xw>
                             <div className="text-center">
                                 <h1>To Do App</h1>
                             </div>     

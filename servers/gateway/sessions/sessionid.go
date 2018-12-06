@@ -6,6 +6,7 @@ import (
 	"crypto/sha256"
 	"encoding/base64"
 	"errors"
+	"log"
 )
 
 //InvalidSessionID represents an empty, invalid session ID
@@ -58,8 +59,12 @@ func NewSessionID(signingKey string) (SessionID, error) {
 //using the `signingKey` as the HMAC signing key
 //and returns an error if invalid, or a SessionID if valid
 func ValidateID(id string, signingKey string) (SessionID, error) {
+
 	decode, err := base64.URLEncoding.DecodeString(id)
 	if err != nil {
+		log.Printf("yoyo")
+
+		log.Printf(err.Error())
 		return InvalidSessionID, err
 	}
 	key := []byte(signingKey)
@@ -69,7 +74,6 @@ func ValidateID(id string, signingKey string) (SessionID, error) {
 	if hmac.Equal(decode[idLength:], keyVal) {
 		return SessionID(id), nil
 	}
-
 	return InvalidSessionID, ErrInvalidID
 }
 

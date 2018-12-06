@@ -12,6 +12,8 @@ import AdminView from './Admin';
 import AddTaskView from './AddTask';
 import ReceiveView from './Receive';
 class App extends Component {
+
+
   render() {
     return (
       <Router>

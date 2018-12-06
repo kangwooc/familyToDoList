@@ -7,16 +7,17 @@ export default class NewFamView extends React.Component {
     constructor(props) {
         super(props);
         this.state = {
-            familyRoomName: ""
+            familyRoomName: "",
+            familyID: 0
         }
     }
 
-    // componentWillMount() {
-    //     let auth = window.localStorage.getItem('auth')
-    //     if (auth !== null ) {
-    //         this.props.history.push({pathname: '/users/me'})
-    //     }
-    // }
+    componentWillMount() {
+        let auth = window.localStorage.getItem('auth')
+        if (auth === null ) {
+            this.props.history.push({pathname: '/signin'})
+        }
+    }
 
     handleSignOut() {
         fetch("https://localhost:443/sessions/mine", {
@@ -43,29 +44,29 @@ export default class NewFamView extends React.Component {
                 "Authorization":localStorage.getItem("auth")
             },
             body: JSON.stringify({
-                "RoomName": this.state.familyRoomName,     
+                "RoomName": this.state.familyRoomName,   
             }),
         }).then(res => {
             console.log(res)
 
             if (!res.ok) { 
-                console.log(res.headers.get('Authorization'))
 
                 console.log("111")
 
                 throw Error(res.statusText + " " + res.status);
             }
 
-            localStorage.getItem("auth");
             return res.json()
         }).then(data => {
             console.log(data)
+            localStorage.setItem("role", "Admin");
+            localStorage.setItem("roomname", this.state.familyRoomName);
             this.props.history.push({pathname: '/main/' + data.roomname})    // go to main task list
         }).catch(function(error) {
             let errorType = document.createElement("p")
             let errorMessage = document.createTextNode("Error to save your data " + error)
             errorType.appendChild(errorMessage)
-            document.getElementById("result").appendChild(errorType)
+            // document.getElementById("result").appendChild(errorType)
         })
     }
 

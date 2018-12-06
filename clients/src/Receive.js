@@ -6,7 +6,7 @@ export default class ReceiveView extends React.Component {
         this.state = {
             roomname: ""
         }
-        
+
     }
 
     componentWillMount() {
@@ -17,35 +17,47 @@ export default class ReceiveView extends React.Component {
                 "Authorization": window.localStorage.getItem("auth")
             }
         }).then(res => {
-            if (!res.ok) { 
+            if (!res.ok) {
                 throw Error(res.statusText + " " + res.status);
             }
             return res.json()
         }).then(data => {
-            console.log(data)
-            let users = data.map((info) => {
-                this.setState({roomname: data.roomname})
-                let userName = info.firstname + " " + info.lastname
-                return (
-                    <div className="row">
-                        <div className="username col-md-4">
-                            <p>{userName}</p>
-                            <button className="btn btn-sucessful my-2 my-sm-0 pull-right" onClick={() => this.handleAccept(info.id, info.roomname)} disabled={info.progress}>
-                                Accept
-                            </button>
-                            <button className="btn btn-alert my-2 my-sm-0 pull-right" onClick={() => this.handleReject(info.id, info.roomname)} disabled={info.progress}>
-                                Refuse
-                            </button>
+            if (data.length == 0) {
+                this.setState({ data: "no member" });
+            } else {
+                let users = data.map((info) => {
+                    this.setState({ roomname: data.roomname })
+                    let userName = info.firstname + " " + info.lastname
+                    return (
+                        <div className="row">
+                            <div class="col-md-4">
+                                <div className="container p-2">
+                                    <div className="border">
+                                        <div className="p-2">
+                                            <p>{userName}
+                                                <div className="my-2 my-sm-0 pull-right">
+                                                    <button className="btn btn-success mr-2 my-sm-0" onClick={() => this.handleAccept(info.id, info.roomname)} disabled={info.progress}>
+                                                        Accept
+                                            </button>
+                                                    <button className="btn btn-danger mr-2 my-sm-0" onClick={() => this.handleReject(info.id, info.roomname)} disabled={info.progress}>
+                                                        Refuse
+                                            </button>
+                                                </div>
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
-                    </div>
-                );
-            });
-            this.setState({data: users});
+                    );
+                });
+                this.setState({ data: users });
+            }
         }).catch(error => {
-                alert(error)
-                localStorage.clear()
-                this.props.history.push({pathname: '/signin'})
-            }        
+            alert(error)
+            localStorage.clear()
+            this.props.history.push({ pathname: '/signin' })
+        }
         )
     }
 
@@ -58,14 +70,14 @@ export default class ReceiveView extends React.Component {
                 "Authorization": localStorage.getItem("auth")
             },
             body: JSON.stringify({
-	            "personrole": "Member",     
-	            "roomname": roomname,
-	            "memberid": id 
+                "personrole": "Member",
+                "roomname": roomname,
+                "memberid": id
             }),
-        }).then(() =>{
+        }).then(() => {
             // this.props.history.push({pathname: '/receive'})
             window.location.reload();
-        }).catch(function(error) {
+        }).catch(function (error) {
             alert(error)
         })
     }
@@ -78,15 +90,15 @@ export default class ReceiveView extends React.Component {
                 "Authorization": localStorage.getItem("auth")
             },
             body: JSON.stringify({
-	            "personrole": "default",     
-	            "roomname": roomname,
-	            "memberid": id 
+                "personrole": "default",
+                "roomname": roomname,
+                "memberid": id
             }),
-        }).then(() =>{
+        }).then(() => {
             // this.props.history.push({pathname: '/receive'})
             window.location.reload();
 
-        }).catch(function(error) {
+        }).catch(function (error) {
             alert(error)
         })
     }
@@ -98,14 +110,14 @@ export default class ReceiveView extends React.Component {
                 "Authorization": localStorage.getItem("auth")
             }
         }).then(res => {
-            if (!res.ok) { 
+            if (!res.ok) {
                 throw Error(res.statusText + " " + res.status);
             }
             localStorage.clear()
-            this.props.history.push({pathname: '/signin'})
-        }).catch(function(error) {
+            this.props.history.push({ pathname: '/signin' })
+        }).catch(function (error) {
             localStorage.clear()
-        })   
+        })
     }
 
     render() {
@@ -129,7 +141,9 @@ export default class ReceiveView extends React.Component {
                 <div>
                     <h3 className="p-3">Current Request</h3>
                 </div>
-                {this.state.data}
+                <div className="m-3">
+                    {this.state.data}
+                </div>
             </div>
         );
     }

@@ -172,6 +172,7 @@ func (s *MySQLStore) GetRoomName(id int64) (*FamilyRoom, error) {
 	}
 	return family, nil
 }
+
 func (s *MySQLStore) GetByRoomName(roomname string) ([]*User, error) {
 	var res []*User
 	rows, err := s.db.Query("Select * From users Where roomname=? And personrole=?", roomname, "Member")
@@ -217,8 +218,8 @@ func (s *MySQLStore) Update(id int64, updates *Updates) (*User, error) {
 	return s.GetByID(id)
 }
 
-func (s *MySQLStore) UpdateScore(id int64, updates *Updates) (*User, error) {
-	results, err := s.db.Exec(updatePoint, updates.Score, id)
+func (s *MySQLStore) UpdateScore(id int64, point int) (*User, error) {
+	results, err := s.db.Exec(update, point, id)
 	if err != nil {
 		return nil, fmt.Errorf("updating: %v", err)
 	}

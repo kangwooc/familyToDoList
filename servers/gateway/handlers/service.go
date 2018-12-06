@@ -37,7 +37,7 @@ func (ctx *HandlerContext) NewServiceProxy(addrs string) *httputil.ReverseProxy 
 				log.Printf(fmt.Sprintf("json marshal error: %v", err.Error()))
 				return
 			}
-			log.Printf("this is user json %v", userJSON)
+			// log.Printf("DEBUG: this is user json %v", userJSON)
 			r.Header.Del("X-User")
 			r.Header.Set("X-User", string(userJSON))
 		},
