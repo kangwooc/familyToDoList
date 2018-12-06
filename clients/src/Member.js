@@ -20,7 +20,7 @@ export default class MemberView extends React.Component {
     }
 
     componentWillMount() {
-        fetch(`https://localhost:443/tasks/${window.localStorage.getItem("roomname")}`, {
+        fetch(`https://api.kangwoo.tech/tasks/${window.localStorage.getItem("roomname")}`, {
             method: "GET",
             headers: {
                 "Authorization": window.localStorage.getItem("auth")
@@ -65,7 +65,7 @@ export default class MemberView extends React.Component {
     }
     handleDone(id) {
 
-        fetch(`https://localhost:443/tasks/done/${id}`, {
+        fetch(`https://api.kangwoo.tech/tasks/done/${id}`, {
             method: "POST",
             headers: {
                 "Authorization": localStorage.getItem("auth"),
@@ -84,7 +84,7 @@ export default class MemberView extends React.Component {
         })
     }
     handleSignOut() {
-        fetch("https://localhost:443/sessions/mine", {
+        fetch("https://api.kangwoo.tech/sessions/mine", {
             method: "DELETE",
             headers: {
                 "Authorization": localStorage.getItem("auth")

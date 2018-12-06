@@ -10,7 +10,7 @@ export default class ReceiveView extends React.Component {
     }
 
     componentWillMount() {
-        fetch(" https://localhost:443/receive", {
+        fetch(" https://api.kangwoo.tech/receive", {
             method: "GET",
             headers: {
                 "Content-Type": "application/json",
@@ -63,7 +63,7 @@ export default class ReceiveView extends React.Component {
 
     handleAccept(id, roomname) {
         console.log(id + " " + roomname)
-        fetch(" https://localhost:443/accept", {
+        fetch(" https://api.kangwoo.tech/accept", {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
@@ -83,7 +83,7 @@ export default class ReceiveView extends React.Component {
     }
 
     handleReject(id, roomname) {
-        fetch(" https://localhost:443/accept", {
+        fetch(" https://api.kangwoo.tech/accept", {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
@@ -104,7 +104,7 @@ export default class ReceiveView extends React.Component {
     }
 
     handleSignOut() {
-        fetch("https://localhost:443/sessions/mine", {
+        fetch("https://api.kangwoo.tech/sessions/mine", {
             method: "DELETE",
             headers: {
                 "Authorization": localStorage.getItem("auth")

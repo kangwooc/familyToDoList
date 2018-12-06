@@ -19,7 +19,7 @@ export default class JoinView extends React.Component {
     }
 
     handleSignOut() {
-        fetch("https://localhost:443/sessions/mine", {
+        fetch("https://api.kangwoo.tech/sessions/mine", {
             method: "DELETE",
             headers: {
                 "Authorization": localStorage.getItem("auth")
@@ -36,7 +36,7 @@ export default class JoinView extends React.Component {
     }
 
     handleSearch() {
-        fetch("https://localhost:443/join", {
+        fetch("https://api.kangwoo.tech/join", {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",

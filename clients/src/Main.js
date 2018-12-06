@@ -20,7 +20,7 @@ export default class MainView extends React.Component {
         let role = localStorage.getItem("role");
         console.log(role);
         this.setState({href: "/" + role.toLowerCase()});
-        fetch(`https://localhost:443/tasks/${this.props.match.params.id}`, {
+        fetch(`https://api.kangwoo.tech/tasks/${this.props.match.params.id}`, {
             method: "GET",
             headers: {
                 "Authorization": window.localStorage.getItem("auth")
@@ -67,7 +67,7 @@ export default class MainView extends React.Component {
     }
 
     handleProgress(id) {
-        fetch(`https://localhost:443/tasks/progress/${id}`, {
+        fetch(`https://api.kangwoo.tech/tasks/progress/${id}`, {
             method: "POST",
             headers: {
                 "Authorization": localStorage.getItem("auth")
@@ -87,7 +87,7 @@ export default class MainView extends React.Component {
 
    
     handleSignOut() {
-        fetch("https://localhost:443/sessions/mine", {
+        fetch("https://api.kangwoo.tech/sessions/mine", {
             method: "DELETE",
             headers: {
                 "Authorization": localStorage.getItem("auth")

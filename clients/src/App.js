@@ -21,7 +21,7 @@ class App extends Component {
 
   componentDidMount() {
     let auth = localStorage.getItem("auth");
-    let url = "wss://localhost:443/ws?auth=" + auth;
+    let url = "wss://api.kangwoo.tech/ws?auth=" + auth;
     
     this.socket = new WebSocket(url);
     this.setState({socket : this.socket});

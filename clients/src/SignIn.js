@@ -20,7 +20,7 @@ export default class SignInView extends React.Component {
 
     handleSubmit(evt) {
         evt.preventDefault();
-        fetch("https://localhost:443/sessions", {
+        fetch("https://api.kangwoo.tech/sessions", {
             method: "POST",
             headers: {
                 "Content-Type": "application/json"

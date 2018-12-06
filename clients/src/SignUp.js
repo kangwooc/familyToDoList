@@ -25,7 +25,7 @@ export default class SignUpView extends React.Component {
     handleSignUp(e) {
         e.preventDefault();
 
-        fetch("https://localhost:443/users", {
+        fetch("https://api.kangwoo.tech/users", {
             method: "POST",
             headers: {
                 "Content-Type": "application/json"

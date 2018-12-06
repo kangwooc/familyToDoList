@@ -20,7 +20,7 @@ export default class NewFamView extends React.Component {
     }
 
     handleSignOut() {
-        fetch("https://localhost:443/sessions/mine", {
+        fetch("https://api.kangwoo.tech/sessions/mine", {
             method: "DELETE",
             headers: {
                 "Authorization": localStorage.getItem("auth")
@@ -37,7 +37,7 @@ export default class NewFamView extends React.Component {
     }
 
     handleMakeRoom() {
-        fetch("https://localhost:443/create", {
+        fetch("https://api.kangwoo.tech/create", {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",

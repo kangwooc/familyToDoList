@@ -12,7 +12,7 @@ export default class AddTaskView extends React.Component {
         this.handleSubmit = this.handleSubmit.bind(this)
     }
     handleSignOut() {
-        fetch("https://localhost:443/sessions/mine", {
+        fetch("https://api.kangwoo.tech/sessions/mine", {
             method: "DELETE",
             headers: {
                 "Authorization": localStorage.getItem("auth")
@@ -29,7 +29,7 @@ export default class AddTaskView extends React.Component {
     }
 
     componentWillMount() {
-        fetch(`https://localhost:443/tasks/${this.props.match.params.id}`, {
+        fetch(`https://api.kangwoo.tech/tasks/${this.props.match.params.id}`, {
             method: "GET",
             headers: {
                 "Authorization": window.localStorage.getItem("auth")
@@ -70,10 +70,10 @@ export default class AddTaskView extends React.Component {
 
     handleSubmit(e) {
         e.preventDefault();
-        console.log(`https://localhost:443/tasks/${window.localStorage.getItem("roomname")}`);
+        console.log(`https://api.kangwoo.tech/tasks/${window.localStorage.getItem("roomname")}`);
         console.log(this.state);
         var body = { description: this.state.task };
-        fetch(`https://localhost:443/tasks/${window.localStorage.getItem("roomname")}`, {
+        fetch(`https://api.kangwoo.tech/tasks/${window.localStorage.getItem("roomname")}`, {
             method: "POST",
             headers: {
                 "Authorization": window.localStorage.getItem("auth"),

@@ -17,7 +17,7 @@ export default class AdminView extends React.Component {
     }
 
     handleDelete(id) {
-        fetch(`https://localhost:443/delete`, {
+        fetch(`https://api.kangwoo.tech/delete`, {
             method: "DELETE",
             headers: {
                 "Authorization": localStorage.getItem("auth"),
@@ -40,7 +40,7 @@ export default class AdminView extends React.Component {
     }
     // this is to display all the members in this room
     componentWillMount() {
-        fetch(`https://localhost:443/memberlist/${window.localStorage.getItem("roomname")}`, {
+        fetch(`https://api.kangwoo.tech/memberlist/${window.localStorage.getItem("roomname")}`, {
             method: "GET",
             headers: {
                 "Authorization": localStorage.getItem("auth"),
@@ -91,7 +91,7 @@ export default class AdminView extends React.Component {
     }
 
     handleSignOut() {
-        fetch("https://localhost:443/sessions/mine", {
+        fetch("https://api.kangwoo.tech/sessions/mine", {
             method: "DELETE",
             headers: {
                 "Authorization": localStorage.getItem("auth")
