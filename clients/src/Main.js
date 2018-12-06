@@ -18,8 +18,6 @@ export default class MainView extends React.Component {
         if (auth === null ) {
             this.props.history.push({pathname: '/signin'})
         } else {
-            let role = localStorage.getItem("role")
-            this.setState({href: "/" + this.state.role.toLowerCase()})
             let sock;
             let auth = localStorage.getItem("auth");
             sock = new WebSocket("wss://localhost:443/ws?auth=" + auth);
@@ -38,6 +36,9 @@ export default class MainView extends React.Component {
         }
     }
     componentWillMount() {
+        let role = localStorage.getItem("role")
+            console.log(role)
+            this.setState({href: "/" + role.toLowerCase()})
         fetch(`https://localhost:443/tasks/${this.props.match.params.id}`, {
             method: "GET",
             headers: {
@@ -49,7 +50,7 @@ export default class MainView extends React.Component {
             }
             return res.json()
         }).then(data => {
-            console.log(data)
+            console.log(data);
             let users = data.map((info) => {
                 console.log(info.isProgress)
                 console.log(info)
@@ -73,6 +74,7 @@ export default class MainView extends React.Component {
                         </div>
                     </div>
                 );
+                
             });
             this.setState({ data: users });
         }).catch(error => {
@@ -134,6 +136,7 @@ export default class MainView extends React.Component {
                         <div className="navbar-nav">
                             <a className="nav-item nav-link active" href="#">Home <span className="sr-only">(current)</span></a>
                             <a className="nav-item nav-link" href={this.state.href}>UserBoard</a>
+                            {console.log(this.state.href)}
                         </div>
                     </div>
                     <button className="btn btn-warning my-2 my-sm-0 pull-right"

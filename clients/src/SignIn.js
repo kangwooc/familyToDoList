@@ -20,14 +20,13 @@ export default class SignInView extends React.Component {
 
     handleSubmit(evt) {
         evt.preventDefault();
-
         fetch("https://localhost:443/sessions", {
             method: "POST",
             headers: {
                 "Content-Type": "application/json"
             },
             body: JSON.stringify({
-	            "username": this.state.userName,    
+	            "username": this.state.userName,
 	            "password":  this.state.password
             }),
         }).then(res => {
@@ -38,7 +37,7 @@ export default class SignInView extends React.Component {
             localStorage.setItem("auth", res.headers.get('Authorization'));
             return res.json()
         }).then(data => {
-            console.log(data);
+            console.log(data)
             if (data.personrole == "Admin" || data.personrole == "Member") {
                 console.log(data.roomname)
                 localStorage.setItem("roomname", data.roomname);

@@ -7,16 +7,26 @@ export default class AddTaskView extends React.Component {
     constructor(props) {
         super(props);
         this.state = {
-            task: "",
-            sock: null
+            task: ""
         }
         this.handleSubmit = this.handleSubmit.bind(this)
     }
-    componentDidMount() {
-        this.socket.onmessage = (msg) => {
-            console.log("Message received " + msg.data);
-        };
-   }
+    handleSignOut() {
+        fetch("https://localhost:443/sessions/mine", {
+            method: "DELETE",
+            headers: {
+                "Authorization": localStorage.getItem("auth")
+            }
+        }).then(res => {
+            if (!res.ok) {
+                throw Error(res.statusText + " " + res.status);
+            }
+            localStorage.clear()
+            this.props.history.push({ pathname: '/signin' })
+        }).catch(function (error) {
+            localStorage.clear()
+        })
+    }
 
     componentWillMount() {
         fetch(`https://localhost:443/tasks/${this.props.match.params.id}`, {
@@ -99,12 +109,12 @@ export default class AddTaskView extends React.Component {
                     </button>
                     <div className="collapse navbar-collapse" id="navbarNavAltMarkup">
                         <div className="navbar-nav">
-                            <a className="nav-item nav-link" href={"/main/" + this.state.roomname.toLowerCase()}>Home</a>
-                            <a className="nav-item nav-link" href={"/admin/" + this.state.roomname.toLowerCase()}>UserBoard</a>
+                            <a className="nav-item nav-link" href={"/main/" + localStorage.getItem("roomname").toLowerCase()}>Home</a>
+                            <a className="nav-item nav-link" href={"/admin/" + localStorage.getItem("roomname").toLowerCase()}>UserBoard</a>
                         </div>
                     </div>
                     <button className="btn btn-warning my-2 my-sm-0 pull-right"
-                        onClick={() => this.handleSignOut()}>
+                        onClick={(e => this.handleSignOut())}>
                         Sign Out
                     </button>
                 </nav>
