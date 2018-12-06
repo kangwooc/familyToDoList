@@ -11,7 +11,6 @@ export default class MainView extends React.Component {
             admin: true,
             status: ""
         }
-        
     }
 
     componentWillMount() {
@@ -68,10 +67,13 @@ export default class MainView extends React.Component {
         }).then(data => {
             console.log(data)
         }).catch(function(error) {
-            alert()
+            alert();
         })
     }
 
+    componentDidMount() {
+        
+    }
     handleSignOut() {
         fetch("https://localhost:443/sessions/mine", {
             method: "DELETE",

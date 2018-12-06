@@ -25,6 +25,7 @@ taskSchema.statics.addTask = function(task, cb) {
         if (docs.length) {
             cb('documents exists already', null);
         } else {
+            console.log(task);
             task.save(function (err) {
                 cb(err, docs);
             });

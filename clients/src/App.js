@@ -12,7 +12,24 @@ import AdminView from './Admin';
 import AddTaskView from './AddTask';
 import ReceiveView from './Receive';
 class App extends Component {
+  constructor(props) {
+    super(props);
+    let auth = localStorage.getItem("auth");
+    let url = "wss://localhost:443/ws?auth=" + auth;
+    this.socket = new WebSocket(url);
+  }
 
+  componentDidMount() {
+    this.socket.onopen = () => {
+      console.log("Connection Opened");
+  };
+    this.socket.onclose = () => {
+      console.log("Connection Closed");
+  };
+    this.socket.onmessage = (msg) => {
+      console.log("Message received " + msg.data);
+    };
+  }
 
   render() {
     return (

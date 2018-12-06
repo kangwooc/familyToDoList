@@ -7,17 +7,56 @@ export default class AddTaskView extends React.Component {
     constructor(props) {
         super(props);
         this.state = {
-            task: ""
+            task: "",
+            sock: null
         }
         this.handleSubmit = this.handleSubmit.bind(this)
     }
-   
-    // componentWillMount() {
-    //     let auth = window.localStorage.getItem('auth')
-    //     if (auth !== null ) {
-    //         this.props.history.push({pathname: '/users/me'})
-    //     }
-    // }
+    componentDidMount() {
+        this.socket.onmessage = (msg) => {
+            console.log("Message received " + msg.data);
+        };
+   }
+
+    componentWillMount() {
+        fetch(`https://localhost:443/tasks/${this.props.match.params.id}`, {
+            method: "GET",
+            headers: {
+                "Authorization": window.localStorage.getItem("auth")
+            }
+        }).then(res => {
+            if (!res.ok) { 
+                throw Error(res.statusText + " " + res.status);
+            }
+            return res.json()
+        }).then(data => {
+            console.log(data)
+            let users = data.map((info) => {
+                console.log(info.isProgress)
+                if (info.isProgress) {
+                    this.setState({progress: "Progressing"})
+                } else {
+                    this.setState({progress: "Not Assigned"})
+                }
+                return (
+                    <div className="row">
+                        <div className="username col-md-4">
+                            <p>{info.description}</p>
+                            <button className="btn btn-warning my-2 my-sm-0 pull-right" onClick={() => this.handleProgress(info._id)} disabled={info.progress}>
+                                {this.state.progress}
+                            </button>
+                        </div>
+                    </div>
+                );
+            });
+            this.setState({data: users});
+        }).catch(error => {
+                alert(error)
+                localStorage.clear()
+                this.props.history.push({pathname: '/signin'})
+            }        
+        );
+    }
 
     handleSubmit(e) {
         e.preventDefault();
@@ -41,7 +80,6 @@ export default class AddTaskView extends React.Component {
             return res.json();
         }).then(data => {
             console.log(data);
-            // this.props.history.push({pathname: '/main'})
         }).catch(error => {
                 alert(error)
                 localStorage.clear()
@@ -90,6 +128,7 @@ export default class AddTaskView extends React.Component {
                         </div>
                     </div>
                 </div>
+                {this.state.data}
             </div>
         );
     }

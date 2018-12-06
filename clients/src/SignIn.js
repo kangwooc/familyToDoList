@@ -31,7 +31,6 @@ export default class SignInView extends React.Component {
 	            "password":  this.state.password
             }),
         }).then(res => {
-            console.log("Sssss")
             if (!res.ok) { 
                 throw Error(res.statusText + " " + res.status);
             }

@@ -84,12 +84,11 @@ app.post("/tasks/:roomname", (req, res, next) => {
     // Check whether user is member or admin
     if (userJSON) {
         let user = JSON.parse(userJSON);
-        var roomname = req.params.roomname;
         var task;
         console.log(user);
         console.log(req.body)
         console.log("req.body.description: "+ req.body.description);
-        console.log(roomname);
+    
         // should return 400 if req.body.description is empty
         if (req.body.description === "" || req.body.description === undefined) {
             res.statusCode = 400;
@@ -102,7 +101,7 @@ app.post("/tasks/:roomname", (req, res, next) => {
                 // (called when an admin clicks create task in his/her private task page)
                 var task = new Task ({
                     description: req.body.description,
-                    familyRoomName: user.roomname
+                    familyRoomName: user.roomname,
                 });
                 // Create new task and push to task table
                 Task.addTask(task, (err, task) => {
@@ -113,7 +112,7 @@ app.post("/tasks/:roomname", (req, res, next) => {
                         return;
                     }
                 });
-                Task.find({"familyRoomName": roomname}).exec((err, tasks) =>{
+                Task.find({"familyRoomName": user.roomname}).exec((err, tasks) =>{
                     if (err) {
                         res.statusCode = 500;
                         res.send("Error while finding tasks");
