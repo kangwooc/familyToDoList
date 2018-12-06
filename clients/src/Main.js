@@ -13,32 +13,15 @@ export default class MainView extends React.Component {
             role: localStorage.getItem("role")
         }
     }
-    componentDidMount() {
-        let auth = window.localStorage.getItem('auth')
-        if (auth === null ) {
-            this.props.history.push({pathname: '/signin'})
-        } else {
-            let sock;
-            let auth = localStorage.getItem("auth");
-            sock = new WebSocket("wss://localhost:443/ws?auth=" + auth);
-
-            sock.onopen = () => {
-                console.log("Connection Opened");
-            };
-            sock.onclose = () => {
-                console.log("Connection Closed");
-            };
-            sock.onmessage = (msg) => {
-                console.log("Message received " + msg.data);
-                document.getElementById("server-text").textContent = msg.data;
-            };
-            this.setState({ sock: sock })
-        }
+    componentWillUpdate() {
+        this.props.socket.onmessage = (megs) => {
+            console.log(megs.data);
+        };
     }
     componentWillMount() {
-        let role = localStorage.getItem("role")
-            console.log(role)
-            this.setState({href: "/" + role.toLowerCase()})
+        let role = localStorage.getItem("role");
+        console.log(role);
+        this.setState({href: "/" + role.toLowerCase()});
         fetch(`https://localhost:443/tasks/${this.props.match.params.id}`, {
             method: "GET",
             headers: {
@@ -52,8 +35,8 @@ export default class MainView extends React.Component {
         }).then(data => {
             console.log(data);
             let users = data.map((info) => {
-                console.log(info.isProgress)
-                console.log(info)
+                console.log(info.isProgress);
+                console.log(info);
                 if (info.isProgress) {
                     this.setState({ progress: "Progressing" })
                 } else {
@@ -104,9 +87,6 @@ export default class MainView extends React.Component {
         })
     }
 
-    componentDidMount() {
-        
-    }
     handleSignOut() {
         fetch("https://localhost:443/sessions/mine", {
             method: "DELETE",

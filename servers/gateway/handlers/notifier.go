@@ -24,7 +24,7 @@ type Notifier struct {
 //NewNotifier constructs a new Notifier
 func NewNotifier() *Notifier {
 	n := &Notifier{
-		connections: make(map[int64]*websocket.Conn),
+		connections: map[int64]*websocket.Conn{},
 		mx:          sync.RWMutex{},
 	}
 	return n
@@ -33,14 +33,11 @@ func NewNotifier() *Notifier {
 //AddClient adds a new client to the Notifier
 func (n *Notifier) AddClient(client *websocket.Conn, id int64) {
 	log.Println("adding new WebSockets client")
-	log.Printf("%v", client)
-	log.Printf("this is id %v", id)
-
-	// n.mx.Lock()
-	log.Printf("Debug: n.connections[id]: %v", n.connections[id])
+	n.mx.Lock()
 	n.connections[id] = client
-	// n.mx.Unlock()
 	log.Printf("this is n.con %v", n.connections[id])
+	fmt.Println("The map is of length: %v", len(n.connections))
+	n.mx.Unlock()
 	//TODO: add the client to the slice you are using
 	//to track all current WebSocket connections.
 	//Since this can be called from multiple
@@ -84,68 +81,64 @@ type Message struct {
 // RemoveConnection is the method that remove connection
 // It is a thread-safe method for inserting a connection
 func (n *Notifier) RemoveConnection(conn *websocket.Conn, userID int64) {
-	// n.mx.Lock()
+	n.mx.Lock()
 	// delete socket connection
 	delete(n.connections, userID)
-	// n.mx.Unlock()
+	n.mx.Unlock()
 }
 
 // Start starts the notification loop
 func (n *Notifier) Start(msgs <-chan amqp.Delivery, name string, ctx *HandlerContext) {
-	log.Println("starting notifier loop")
 	// for msg := range msgs {
-	n.mx.Lock()
-	defer n.mx.Unlock()
+	// n.mx.Lock()
+	// defer n.mx.Unlock()
 	for {
-		for d := range msgs {
-			log.Printf("%s", string(d.Body[:]))
-			m := &Message{}
-			if err := json.Unmarshal(d.Body, m); err != nil {
-				fmt.Errorf("Error while unmarshal of d.Body: %v", err)
-				return
-			}
+		d := <-msgs
+		log.Printf("Received a task: %v", string(d.Body[:]))
+		m := &Message{}
+		if err := json.Unmarshal(d.Body, m); err != nil {
+			log.Printf("Error while unmarshal of d.Body: %v", err)
+			fmt.Errorf("Error while unmarshal of d.Body: %v", err)
+			return
+		}
 
-			log.Printf("Debug: start messages: %v", m)
-			log.Println(m.Task.Description, " ", m.Task.FamilyRoomName, " ", m.Task.IsProgress)
-			// // Get the roomname using getbyroomname() from mysql
-			users, err := ctx.User.GetByRoomName(m.Task.FamilyRoomName)
-			if err != nil {
-				fmt.Errorf("Error while running GetByRoomName: %v", err)
+		log.Printf("Debug: start messages: %v", m)
+		log.Println(m.Task.Description, " ", m.Task.FamilyRoomName, " ", m.Task.IsProgress)
+		// // Get the roomname using getbyroomname() from mysql
+		users, err := ctx.User.GetByRoomName(m.Task.FamilyRoomName)
+		if err != nil {
+			log.Printf("Error while running GetByRoomName: %v", err)
+			fmt.Errorf("Error while running GetByRoomName: %v", err)
+			return
+		}
+		log.Printf("Debug: start users: %v", users)
+		log.Printf(m.Task.FamilyRoomName)
+		// Get admin using getadmin() for adding admin to users
+		admin, err := ctx.User.GetAdmin(m.Task.FamilyRoomName, "Admin")
+		if err != nil {
+			log.Printf("Debug: start admin: %v", m.Task.FamilyRoomName)
+			fmt.Errorf("Error while running GetAdmin: %v", err)
+			return
+		}
+		log.Printf("Debug: start admin2: %v", admin)
+		users = append(users, admin)
+		// if the done
+		if m.Name == "task-done" {
+			// should update points to mysql
+			if _, err := ctx.User.UpdateScore(m.User.ID, m.Point); err != nil {
+				fmt.Errorf("Error while running UpdateScore: %v", err)
 				return
-			}
-			log.Printf("Debug: start users: %v", users)
-			log.Printf(m.Task.FamilyRoomName)
-			// Get admin using getadmin() for adding admin to users
-			admin, err := ctx.User.GetAdmin(m.Task.FamilyRoomName, "Admin")
-			if err != nil {
-				log.Printf("Debug: start admin: %v", m.Task.FamilyRoomName)
-				fmt.Errorf("Error while running GetAdmin: %v", err)
-				return
-			}
-			log.Printf("Debug: start admin2: %v", admin)
-			users = append(users, admin)
-			// if the done
-			if m.Name == "task-done" {
-				// should update points to mysql
-				if _, err := ctx.User.UpdateScore(m.User.ID, m.Point); err != nil {
-					fmt.Errorf("Error while running UpdateScore: %v", err)
-					return
-				}
-			}
-			log.Printf("this is n %v", n.connections)
-			// for loop through family members and write the message to the connections
-			for _, user := range users {
-
-				conn := n.connections[user.ID]
-				log.Println(conn == nil)
-				log.Println(user)
-
-				// if Writemessage has an error, break the loop.
-				if err := conn.WriteMessage(1, d.Body); err != nil {
-					n.RemoveConnection(conn, user.ID)
-					break
-				}
 			}
 		}
+		// for loop through family members and write the message to the connections
+		for _, user := range users {
+			conn := n.connections[user.ID]
+			// if Writemessage has an error, break the loop.
+			if err := conn.WriteMessage(websocket.TextMessage, d.Body); err != nil {
+				n.RemoveConnection(conn, user.ID)
+				break
+			}
+		}
+
 	}
 }

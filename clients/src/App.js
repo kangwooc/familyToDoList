@@ -14,9 +14,6 @@ import ReceiveView from './Receive';
 class App extends Component {
   constructor(props) {
     super(props);
-    this.state = {
-      socket:""
-    }
   }
 
   componentDidMount() {
@@ -31,10 +28,6 @@ class App extends Component {
 
     this.socket.onclose = () => {
       console.log("Connection Closed");
-    };
-
-    this.socket.onmessage = (msg) => {
-      console.log("Message received " + msg.data);
     };
   }
   render() {
