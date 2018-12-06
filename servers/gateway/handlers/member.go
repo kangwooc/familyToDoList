@@ -4,11 +4,15 @@ import (
 	"encoding/json"
 	"final-project-zco/servers/gateway/models/users"
 	"final-project-zco/servers/gateway/sessions"
+	"log"
 	"net/http"
 	"path"
-	"strconv"
 	"strings"
 )
+
+type Num struct {
+	ID int `json:"id"`
+}
 
 // DeleteHandler is for deleting member
 func (context *HandlerContext) DeleteHandler(w http.ResponseWriter, r *http.Request) {
@@ -33,28 +37,27 @@ func (context *HandlerContext) DeleteHandler(w http.ResponseWriter, r *http.Requ
 			return
 		}
 		// the member to delete
-		user := &users.User{}
-		if err := json.NewDecoder(r.Body).Decode(user); err != nil {
+		num := &Num{}
+		if err := json.NewDecoder(r.Body).Decode(num); err != nil {
+			log.Printf("resulttthehe %v", num)
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
 		update := &users.Updates{Role: "Default", RoomName: ""}
-		u, err := context.User.UpdateToMember(user.ID, update)
+		u, err := context.User.UpdateToMember(int64(num.ID), update)
 		if err != nil {
+			log.Printf("this is id last %v", num.ID)
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
 		if err = u.ApplyUpdates(update); err != nil {
-			// log.Printf("what is wrofffng222", sessionState.User.Role)
+			log.Printf("what is wrofffng222", sessionState.User.Role)
 			http.Error(w, err.Error(), http.StatusBadRequest)
 			return
 		}
 		w.Header().Set("Content-Type", "application/json")
+		w.Write([]byte("Deleted"))
 		w.WriteHeader(http.StatusOK)
-		if err = json.NewEncoder(w).Encode(u); err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
-		}
 	} else {
 		http.Error(w, "Current status method is not allowed", http.StatusMethodNotAllowed)
 		return
@@ -85,28 +88,28 @@ func (context *HandlerContext) DisplayHandler(w http.ResponseWriter, r *http.Req
 			return
 		}
 		// if user is authenticated, get the room id
-		roomid := path.Base(r.URL.Path)
+		roomname := path.Base(r.URL.Path)
 		// log.Println("this is roomid %s", roomid)
-		room, err := strconv.ParseInt(roomid, 10, 64)
-		if err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
-		}
-		split := strings.Split(r.URL.Path, "/")
+		// room, err := strconv.ParseInt(roomid, 10, 64)
+		// if err != nil {
+		// 	http.Error(w, err.Error(), http.StatusInternalServerError)
+		// 	return
+		// }
+		// split := strings.Split(r.URL.Path, "/")
 		// log.Println("this is split %d", len(split))
-		if len(split) > 3 {
-			http.Error(w, "User must be authenticated", http.StatusUnauthorized)
-			return
-		}
-		fam, err := context.Family.GetRoomName(room)
-		if err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
-		}
+		// if len(split) > 3 {
+		// 	http.Error(w, "User must be authenticated", http.StatusUnauthorized)
+		// 	return
+		// }
+		// fam, err := context.Family.GetRoomName(room)
+		// if err != nil {
+		// 	http.Error(w, err.Error(), http.StatusInternalServerError)
+		// 	return
+		// }
 		// log.Println("this is fam %v", fam.RoomName)
 
 		// once get the room name, get all the users in that room
-		userArr, err := context.User.GetByRoomName(fam.RoomName)
+		userArr, err := context.User.GetByRoomName(roomname)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return

@@ -4,9 +4,90 @@ export default class AdminView extends React.Component {
     constructor(props) {
         super(props);
         this.state = {
-            href: "/main/" + localStorage.getItem("roomid")
+            href: "/admin",
+            data: null,
+            roomname: localStorage.getItem("roomname"),
+            id: ""
         }
-        
+    }
+    componentDidMount() {
+        let room = localStorage.getItem("roomname")
+        console.log(room)
+        this.setState({ href: "/main/" + this.state.roomname.toLowerCase() })
+    }
+
+    handleDelete(id) {
+        fetch(`https://localhost:443/delete`, {
+            method: "DELETE",
+            headers: {
+                "Authorization": localStorage.getItem("auth"),
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+                "id": id,
+            }),
+        }).then(res => {
+            if (!res.ok) {
+                throw Error(res.statusText + " " + res.status);
+            }
+            // localStorage.clear()
+            alert("Deleted Member!")
+            window.location.reload();
+        }).catch(function (error) {
+            localStorage.clear()
+            alert(error)
+        })
+    }
+    // this is to display all the members in this room
+    componentWillMount() {
+        fetch(`https://localhost:443/memberlist/${window.localStorage.getItem("roomname")}`, {
+            method: "GET",
+            headers: {
+                "Authorization": localStorage.getItem("auth"),
+                "Content-Type": "application/json"
+            }
+        }).then((res) => {
+            if (!res.ok) {
+                throw Error(res.statusText + " " + res.status);
+            }
+            return res.json()
+        }).then((data) => {
+            if (data == null) {
+                console.log("no member");
+
+                this.setState({ data: "no member" });
+
+            } else {
+                console.log("this is data");
+
+                console.log(data);
+                let user = data.map((info) => {
+                    console.log(info.firstname + " " + info.lastname);
+                    return (
+                        <div className="row">
+                            <div className="username col-md-4">
+                                <div className="container p-2">
+                                    <div className="border">
+                                        <p className="p-2">{info.firstname + " " + info.lastname}
+                                            <button className="btn btn-danger my-2 my-sm-0 pull-right" onClick={() => this.handleDelete(info.id)}>
+                                                Delete
+                                    </button>
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    );
+                });
+                this.setState({ data: user });
+            }
+        }
+        ).catch(error => {
+            alert(error)
+            localStorage.clear()
+            this.props.history.push({ pathname: '/signin' })
+        }
+        )
     }
 
     handleSignOut() {
@@ -16,14 +97,14 @@ export default class AdminView extends React.Component {
                 "Authorization": localStorage.getItem("auth")
             }
         }).then(res => {
-            if (!res.ok) { 
+            if (!res.ok) {
                 throw Error(res.statusText + " " + res.status);
             }
             localStorage.clear()
-            this.props.history.push({pathname: '/signin'})
-        }).catch(function(error) {
+            this.props.history.push({ pathname: '/signin' })
+        }).catch(function (error) {
             localStorage.clear()
-        })   
+        })
     }
 
     render() {
@@ -38,21 +119,21 @@ export default class AdminView extends React.Component {
                         <div className="navbar-nav">
                             <a className="nav-item nav-link" href={this.state.href}>Home</a>
                             <a className="nav-item nav-link active" href="#"><span className="sr-only">(current)</span>UserBoard</a>
-                            <a className="nav-item nav-link" href="#">LeaderBoard</a>
                         </div>
                     </div>
-                    <button type="button" className="btn btn-outline-warning mr-2 fa fa-plus" onClick={()=>{this.props.history.push("/add"); console.log("clicked")}}></button>
-                    <button className="btn btn btn-outline-warning my-2 my-sm-0 pull-right"
-                        onClick={() => this.props.history.push({pathname: '/receive'})}>
+                    <button type="button" className="btn btn-outline-warning mr-2 fa fa-plus" onClick={() => { this.props.history.push("/add"); console.log("clicked") }}></button>
+                    <button className="btn btn btn-outline-warning mr-2 my-sm-0"
+                        onClick={() => this.props.history.push({ pathname: '/receive' })}>
                         Request
                     </button>
-                    <button className="btn btn-warning my-2 my-sm-0 pull-right"
+                    <button className="btn btn-warning mr-2 my-sm-0"
                         onClick={() => this.handleSignOut()}>
                         Sign Out
                     </button>
                 </nav>
-                <div>
-                    <h3 className="p-3">Current Member</h3>
+                <h3 className="p-3">Current Member</h3>
+                <div className="m-3">
+                    {this.state.data}
                 </div>
             </div>
         );

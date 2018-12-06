@@ -10,7 +10,13 @@ export default class DeepSignUpView extends React.Component {
           token: window.localStorage.getItem("auth")
         }
     }
-
+    
+    componentWillMount() {
+        let auth = window.localStorage.getItem('auth')
+        if (auth === null ) {
+            this.props.history.push({pathname: '/signin'})
+        }
+    }
 
     handleNewFam() {
         this.props.history.push({pathname: '/newFam'})

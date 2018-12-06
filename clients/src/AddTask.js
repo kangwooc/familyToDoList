@@ -60,10 +60,10 @@ export default class AddTaskView extends React.Component {
 
     handleSubmit(e) {
         e.preventDefault();
-        console.log(`https://localhost:443/tasks/${window.localStorage.getItem("roomid")}`);
+        console.log(`https://localhost:443/tasks/${window.localStorage.getItem("roomname")}`);
         console.log(this.state);
         var body = { description: this.state.task };
-        fetch(`https://localhost:443/tasks/${window.localStorage.getItem("roomid")}`, {
+        fetch(`https://localhost:443/tasks/${window.localStorage.getItem("roomname")}`, {
             method: "POST",
             headers: {
                 "Authorization": window.localStorage.getItem("auth"),
@@ -99,8 +99,8 @@ export default class AddTaskView extends React.Component {
                     </button>
                     <div className="collapse navbar-collapse" id="navbarNavAltMarkup">
                         <div className="navbar-nav">
-                            <a className="nav-item nav-link" href='/main'>Home</a>
-                            <a className="nav-item nav-link" href="/admin">UserBoard</a>
+                            <a className="nav-item nav-link" href={"/main/" + this.state.roomname.toLowerCase()}>Home</a>
+                            <a className="nav-item nav-link" href={"/admin/" + this.state.roomname.toLowerCase()}>UserBoard</a>
                         </div>
                     </div>
                     <button className="btn btn-warning my-2 my-sm-0 pull-right"
@@ -118,9 +118,7 @@ export default class AddTaskView extends React.Component {
                                 <form className="form-inline">
                                     <div className="form-group mx-sm-3 mb-2">
                                         <input className="form-control" placeholder="Add Task"
-                                            // value={this.state.task}
                                             onInput={evt => this.setState({ task: evt.target.value})} />
-                                            {/* {console.log(this.state.task)} */}
                                     </div>
                                     <button className="btn btn-warning mt-2 mb-2 ml-2" onClick={(evt) => this.handleSubmit(evt)}>Submit</button>
                                 </form>

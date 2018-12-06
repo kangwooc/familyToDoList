@@ -11,12 +11,12 @@ export default class SignInView extends React.Component {
         };
     }
     
-    // componentDidMount() {
-    //     let auth = window.localStorage.getItem('auth')
-    //     if (auth !== null ) {
-    //         this.props.history.push({pathname: '/users/me'})
-    //     }
-    // }
+    componentDidMount() {
+        let auth = window.localStorage.getItem('auth')
+        if (auth !== null ) {
+            this.props.history.push({pathname: '/main/' +  localStorage.getItem("roomname")})
+        }
+    }
 
     handleSubmit(evt) {
         evt.preventDefault();
@@ -38,11 +38,13 @@ export default class SignInView extends React.Component {
             localStorage.setItem("auth", res.headers.get('Authorization'));
             return res.json()
         }).then(data => {
-            console.log(data)
+            console.log(data);
             if (data.personrole == "Admin" || data.personrole == "Member") {
-                this.props.history.push({pathname: '/main/' + data.roomname})
-                localStorage.setItem("roomid", data.roomname);
+                console.log(data.roomname)
+                localStorage.setItem("roomname", data.roomname);
                 localStorage.setItem("userid", data.id);
+                localStorage.setItem("role", data.personrole);
+                this.props.history.push({pathname: '/main/' + data.roomname});
             } else {
                 this.props.history.push({pathname: '/deepSign'})
             }
@@ -50,7 +52,7 @@ export default class SignInView extends React.Component {
             let errorType = document.createElement("p")
             let errorMessage = document.createTextNode("Error to save your data " + error)
             errorType.appendChild(errorMessage)
-            document.getElementById("result").appendChild(errorType)
+            // document.getElementById("result").appendChild(errorType)
         })
     }
 

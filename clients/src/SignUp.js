@@ -15,15 +15,16 @@ export default class SignUpView extends React.Component {
         }
     }
 
-    componentWillMount() {
+    componentDidMount() {
         let auth = window.localStorage.getItem('auth')
-        if (auth !== null) {
-            console.log("auth is not null")
-            console.log(auth)
+        if (auth !== null ) {
+            this.props.history.push({pathname: '/main/' +  localStorage.getItem("roomname")})
         }
     }
 
-    handleSignUp() {
+    handleSignUp(e) {
+        e.preventDefault();
+
         fetch("https://localhost:443/users", {
             method: "POST",
             headers: {
@@ -48,6 +49,7 @@ export default class SignUpView extends React.Component {
         }).then(data => {
             console.log(data)
             this.setState({id: data.id})
+            localStorage.setItem("role", data.personrole);
             this.props.history.push({pathname: '/deepSign'})
         }).catch(function(error) {
             let errorType = document.createElement("p")
@@ -130,7 +132,7 @@ export default class SignUpView extends React.Component {
 
                                         </form>
                                         <button className="btn btn-primary mr-2 p-2"
-                                            onClick={() => this.handleSignUp()}>
+                                            onClick={(e) => this.handleSignUp(e)}>
                                             Sign Up
                                         </button>
 
