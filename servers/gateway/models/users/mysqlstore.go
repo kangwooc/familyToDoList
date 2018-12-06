@@ -3,7 +3,6 @@ package users
 import (
 	"database/sql"
 	"fmt"
-	"log"
 	"strconv"
 )
 
@@ -97,14 +96,14 @@ func getByHelper(s *MySQLStore, identifier string, command string) (*User, error
 //GetByID returns a specific user according to given id or ErrUserNotFound
 //if the requested user does not exist
 func (s *MySQLStore) GetByID(id int64) (*User, error) {
-	log.Printf("iddddddddssssdd %d", id)
+	// log.Printf("iddddddddssssdd %d", id)
 
 	row := s.db.QueryRow(selectID, id)
 	user := &User{}
 	if err := row.Scan(&user.ID, &user.UserName, &user.PassHash,
 		&user.FirstName, &user.LastName, &user.PhotoURL, &user.Role, &user.RoomName, &user.Score); err != nil {
 		if err == sql.ErrNoRows {
-			log.Println("efefe")
+			// log.Println("efefe")
 			return nil, ErrUserNotFound
 		}
 		return nil, fmt.Errorf("scanning: %v", err)
@@ -154,7 +153,7 @@ func (s *MySQLStore) UpdateToMember(id int64, updates *Updates) (*User, error) {
 	//if no rows were affected, then the requested
 	//ID was not in the database
 	if affected == 0 {
-		log.Printf("member wrong")
+		// log.Printf("member wrong")
 		return nil, ErrUserNotFound
 	}
 	return s.GetByID(id)
@@ -199,7 +198,7 @@ func (s *MySQLStore) GetByRoomName(roomname string) ([]*User, error) {
 //and returns the newly-inserted User. It returns
 //nil and ErrUserNotFound if the task ID does not exist.
 func (s *MySQLStore) Update(id int64, updates *Updates) (*User, error) {
-	log.Printf("idddddd %d", id)
+	// log.Printf("idddddd %d", id)
 	results, err := s.db.Exec(update, updates.Role, id)
 	if err != nil {
 		return nil, fmt.Errorf("updating: %v", err)
@@ -212,7 +211,7 @@ func (s *MySQLStore) Update(id int64, updates *Updates) (*User, error) {
 	//if no rows were affected, then the requested
 	//ID was not in the database
 	if affected == 0 {
-		log.Printf("zeroccc row")
+		// log.Printf("zeroccc row")
 		return nil, ErrUserNotFound
 	}
 	return s.GetByID(id)
@@ -231,7 +230,7 @@ func (s *MySQLStore) UpdateScore(id int64, point int) (*User, error) {
 	//if no rows were affected, then the requested
 	//ID was not in the database
 	if affected == 0 {
-		log.Printf("zero row")
+		// log.Printf("zero row")
 		return nil, ErrUserNotFound
 	}
 	return s.GetByID(id)

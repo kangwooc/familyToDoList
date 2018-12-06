@@ -62,8 +62,6 @@ func ValidateID(id string, signingKey string) (SessionID, error) {
 
 	decode, err := base64.URLEncoding.DecodeString(id)
 	if err != nil {
-		log.Printf("yoyo")
-
 		log.Printf(err.Error())
 		return InvalidSessionID, err
 	}
