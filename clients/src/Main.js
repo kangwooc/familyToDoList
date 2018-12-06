@@ -72,6 +72,26 @@ export default class MainView extends React.Component {
         })
     }
 
+    componentDidMount() {
+        let sock;
+        document.addEventListener("DOMContentLoaded", (event) => {
+            let auth = localStorage.getItem("auth");
+
+            sock = new WebSocket("wss://api.kangwoo.tech/ws?auth=" + auth);
+
+            sock.onopen = () => {
+                console.log("Connection Opened");
+            };
+            sock.onclose = () => {
+                console.log("Connection Closed");
+            };
+            sock.onmessage = (msg) => {
+                console.log("Message received " + msg.data);
+            };
+            this.setState({sock: sock})
+        })
+    }
+
     handleSignOut() {
         fetch("https://localhost:443/sessions/mine", {
             method: "DELETE",
