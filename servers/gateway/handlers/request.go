@@ -43,6 +43,12 @@ func (context *HandlerContext) JoinHandler(w http.ResponseWriter, r *http.Reques
 			return
 		}
 
+		admin, err := context.User.GetAdmin(update.RoomName, "Admin")
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusNotFound)
+			return
+		}
+
 		member := &users.Updates{RoomName: update.RoomName, Role: "Waiting"}
 		// update the user role to be admin
 		added, err := context.User.Update(numID, member)
@@ -53,7 +59,6 @@ func (context *HandlerContext) JoinHandler(w http.ResponseWriter, r *http.Reques
 		sessionState.User.Role = member.Role
 		sessionState.User.RoomName = member.RoomName
 		if err = context.Session.Save(sid, sessionState); err != nil {
-			log.Printf("adddaa")
 
 			log.Printf(err.Error())
 			http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -64,11 +69,6 @@ func (context *HandlerContext) JoinHandler(w http.ResponseWriter, r *http.Reques
 			return
 		}
 
-		admin, err := context.User.GetAdmin(update.RoomName, "Admin")
-		if err != nil {
-			http.Error(w, err.Error(), http.StatusNotFound)
-			return
-		}
 		newSlice, ok := context.Request[admin.ID]
 		var userSlice []*users.User
 		if !ok {
@@ -167,9 +167,22 @@ func (context *HandlerContext) AcceptRequest(w http.ResponseWriter, r *http.Requ
 			http.Error(w, err.Error(), http.StatusBadRequest)
 			return
 		}
+		//get slice of user from the map
+		//remove it from the slice.
+		var slice []*users.User
+		slice = make([]*users.User, 0)
+		if len(context.Request[sessionState.User.ID]) == 1 {
+			context.Request[sessionState.User.ID] = make([]*users.User, 0)
+		} else {
+			for _, k := range context.Request[sessionState.User.ID] {
+				if k.ID != accept.MemberID {
+					//append
+					slice = append(slice, k)
+				}
+			}
+			context.Request[sessionState.User.ID] = slice
+		}
 
-		q, _ := context.User.GetByID(accept.MemberID)
-		log.Printf("Debug: mem id %v", q)
 		w.Header().Set("Content-Type", "text/plain")
 		w.Write([]byte("Request complete!"))
 	} else {

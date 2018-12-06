@@ -4,7 +4,6 @@ import (
 	"crypto/md5"
 	"encoding/hex"
 	"fmt"
-	"log"
 	"strings"
 
 	"golang.org/x/crypto/bcrypt"
@@ -128,7 +127,7 @@ func (u *User) Authenticate(password string) error {
 //ApplyUpdates applies the updates to the user. An error
 //is returned if the updates are invalid
 func (u *User) ApplyUpdates(updates *Updates) error {
-	log.Printf("apple update wrong")
+	// log.Printf("apple update wrong")
 
 	u.Role = updates.Role
 	u.RoomName = updates.RoomName

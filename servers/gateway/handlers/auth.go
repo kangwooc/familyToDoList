@@ -5,7 +5,6 @@ import (
 	"final-project-zco/servers/gateway/models/users"
 	"final-project-zco/servers/gateway/sessions"
 	"fmt" // "log"
-	"log"
 	"net/http"
 	"path"
 	"strconv"
@@ -48,12 +47,12 @@ func (context *HandlerContext) UsersHandler(w http.ResponseWriter, r *http.Reque
 			User:         dbuser,
 		}
 
-		sid, err := sessions.BeginSession(context.SigningKey, context.Session, newSessionState, w)
+		_, err = sessions.BeginSession(context.SigningKey, context.Session, newSessionState, w)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
-		log.Printf("Debug sid from userhandler: %s", sid.String())
+		// log.Printf("Debug sid from userhandler: %s", sid.String())
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusCreated)
 		err = json.NewEncoder(w).Encode(user)
@@ -89,7 +88,7 @@ func (context *HandlerContext) CreateHandler(w http.ResponseWriter, r *http.Requ
 			http.Error(w, err.Error(), http.StatusBadRequest)
 			return
 		}
-		log.Println("user role %v", u.Role)
+		// log.Println("user role %v", u.Role)
 		if u.Role == "Admin" {
 			http.Error(w, "User must be default to create a room", http.StatusUnauthorized)
 			return
@@ -116,13 +115,13 @@ func (context *HandlerContext) CreateHandler(w http.ResponseWriter, r *http.Requ
 		se := &SessionState{}
 
 		context.Session.Get(sid, se)
-		log.Println("user added role se %v", se.User.Role)
+		// log.Println("user added role se %v", se.User.Role)
 
 		if err = added.ApplyUpdates(admin); err != nil {
 			http.Error(w, err.Error(), http.StatusBadRequest)
 			return
 		}
-		log.Println("user added role %v", added.Role)
+		// log.Println("user added role %v", added.Role)
 
 		// insert into family table
 		fam, err := context.Family.InsertFam(family)

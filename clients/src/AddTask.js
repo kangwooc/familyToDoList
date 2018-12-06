@@ -11,20 +11,69 @@ export default class AddTaskView extends React.Component {
         }
         this.handleSubmit = this.handleSubmit.bind(this)
     }
-   
-    // componentWillMount() {
-    //     let auth = window.localStorage.getItem('auth')
-    //     if (auth !== null ) {
-    //         this.props.history.push({pathname: '/users/me'})
-    //     }
-    // }
+    handleSignOut() {
+        fetch("https://api.kangwoo.tech/sessions/mine", {
+            method: "DELETE",
+            headers: {
+                "Authorization": localStorage.getItem("auth")
+            }
+        }).then(res => {
+            if (!res.ok) {
+                throw Error(res.statusText + " " + res.status);
+            }
+            localStorage.clear()
+            this.props.history.push({ pathname: '/signin' })
+        }).catch(function (error) {
+            localStorage.clear()
+        })
+    }
+
+    componentWillMount() {
+        fetch(`https://api.kangwoo.tech/tasks/${this.props.match.params.id}`, {
+            method: "GET",
+            headers: {
+                "Authorization": window.localStorage.getItem("auth")
+            }
+        }).then(res => {
+            if (!res.ok) { 
+                throw Error(res.statusText + " " + res.status);
+            }
+            return res.json()
+        }).then(data => {
+            console.log(data)
+            let users = data.map((info) => {
+                console.log(info.isProgress)
+                if (info.isProgress) {
+                    this.setState({progress: "Progressing"})
+                } else {
+                    this.setState({progress: "Not Assigned"})
+                }
+                return (
+                    <div className="row">
+                        <div className="username col-md-4">
+                            <p>{info.description}</p>
+                            <button className="btn btn-warning my-2 my-sm-0 pull-right" onClick={() => this.handleProgress(info._id)} disabled={info.progress}>
+                                {this.state.progress}
+                            </button>
+                        </div>
+                    </div>
+                );
+            });
+            this.setState({data: users});
+        }).catch(error => {
+                alert(error)
+                localStorage.clear()
+                this.props.history.push({pathname: '/signin'})
+            }        
+        );
+    }
 
     handleSubmit(e) {
         e.preventDefault();
-        console.log(`https://localhost:443/tasks/${window.localStorage.getItem("roomid")}`);
+        console.log(`https://api.kangwoo.tech/tasks/${window.localStorage.getItem("roomname")}`);
         console.log(this.state);
         var body = { description: this.state.task };
-        fetch(`https://localhost:443/tasks/${window.localStorage.getItem("roomid")}`, {
+        fetch(`https://api.kangwoo.tech/tasks/${window.localStorage.getItem("roomname")}`, {
             method: "POST",
             headers: {
                 "Authorization": window.localStorage.getItem("auth"),
@@ -41,7 +90,7 @@ export default class AddTaskView extends React.Component {
             return res.json();
         }).then(data => {
             console.log(data);
-            // this.props.history.push({pathname: '/main'})
+            // this.props.socket.send(data)
         }).catch(error => {
                 alert(error)
                 localStorage.clear()
@@ -61,12 +110,12 @@ export default class AddTaskView extends React.Component {
                     </button>
                     <div className="collapse navbar-collapse" id="navbarNavAltMarkup">
                         <div className="navbar-nav">
-                            <a className="nav-item nav-link" href='/main'>Home</a>
-                            <a className="nav-item nav-link" href="/admin">UserBoard</a>
+                            <a className="nav-item nav-link" href={"/main/" + localStorage.getItem("roomname").toLowerCase()}>Home</a>
+                            <a className="nav-item nav-link" href={"/admin/" + localStorage.getItem("roomname").toLowerCase()}>UserBoard</a>
                         </div>
                     </div>
                     <button className="btn btn-warning my-2 my-sm-0 pull-right"
-                        onClick={() => this.handleSignOut()}>
+                        onClick={(e => this.handleSignOut())}>
                         Sign Out
                     </button>
                 </nav>
@@ -80,9 +129,7 @@ export default class AddTaskView extends React.Component {
                                 <form className="form-inline">
                                     <div className="form-group mx-sm-3 mb-2">
                                         <input className="form-control" placeholder="Add Task"
-                                            // value={this.state.task}
                                             onInput={evt => this.setState({ task: evt.target.value})} />
-                                            {/* {console.log(this.state.task)} */}
                                     </div>
                                     <button className="btn btn-warning mt-2 mb-2 ml-2" onClick={(evt) => this.handleSubmit(evt)}>Submit</button>
                                 </form>
@@ -90,6 +137,7 @@ export default class AddTaskView extends React.Component {
                         </div>
                     </div>
                 </div>
+                {this.state.data}
             </div>
         );
     }

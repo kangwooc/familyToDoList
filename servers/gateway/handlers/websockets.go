@@ -62,7 +62,7 @@ func NewWebSocketsHandler(notifier *Notifier) *WebSocketsHandler {
 func (ctx *HandlerContext) WebSocketsHandler(w http.ResponseWriter, r *http.Request) {
 	log.Println("Debug: received websocket upgrade request")
 	sessionState := &SessionState{}
-	log.Printf("Debug: r: %v", r)
+	// log.Printf("Debug: r: %v", r)
 	_, err := sessions.GetState(r, ctx.SigningKey, ctx.Session, sessionState)
 	if err != nil {
 		log.Printf("Debug: Error: %v", err)

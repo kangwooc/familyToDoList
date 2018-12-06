@@ -11,27 +11,25 @@ export default class SignInView extends React.Component {
         };
     }
     
-    // componentDidMount() {
-    //     let auth = window.localStorage.getItem('auth')
-    //     if (auth !== null ) {
-    //         this.props.history.push({pathname: '/users/me'})
-    //     }
-    // }
+    componentDidMount() {
+        let auth = window.localStorage.getItem('auth')
+        if (auth !== null ) {
+            this.props.history.push({pathname: '/main/' +  localStorage.getItem("roomname")})
+        }
+    }
 
     handleSubmit(evt) {
         evt.preventDefault();
-
-        fetch("https://localhost:443/sessions", {
+        fetch("https://api.kangwoo.tech/sessions", {
             method: "POST",
             headers: {
                 "Content-Type": "application/json"
             },
             body: JSON.stringify({
-	            "username": this.state.userName,    
+	            "username": this.state.userName,
 	            "password":  this.state.password
             }),
         }).then(res => {
-            console.log("Sssss")
             if (!res.ok) { 
                 throw Error(res.statusText + " " + res.status);
             }
@@ -41,9 +39,11 @@ export default class SignInView extends React.Component {
         }).then(data => {
             console.log(data)
             if (data.personrole == "Admin" || data.personrole == "Member") {
-                this.props.history.push({pathname: '/main/' + data.roomname})
-                localStorage.setItem("roomid", data.roomname);
+                console.log(data.roomname)
+                localStorage.setItem("roomname", data.roomname);
                 localStorage.setItem("userid", data.id);
+                localStorage.setItem("role", data.personrole);
+                this.props.history.push({pathname: '/main/' + data.roomname});
             } else {
                 this.props.history.push({pathname: '/deepSign'})
             }
@@ -51,7 +51,7 @@ export default class SignInView extends React.Component {
             let errorType = document.createElement("p")
             let errorMessage = document.createTextNode("Error to save your data " + error)
             errorType.appendChild(errorMessage)
-            document.getElementById("result").appendChild(errorType)
+            // document.getElementById("result").appendChild(errorType)
         })
     }
 

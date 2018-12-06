@@ -5,108 +5,99 @@ export default class MainView extends React.Component {
         super(props);
         this.state = {
             // role: true,
-            href: "/admin",
+            href: "/",
             data: null,
             progress: "",
             admin: true,
-            status: ""
+            status: "",
+            role: localStorage.getItem("role")
         }
-        
     }
-
     componentWillMount() {
-        fetch(`https://localhost:443/tasks/${this.props.match.params.id}`, {
+        let role = localStorage.getItem("role");
+        console.log(role);
+        this.setState({href: "/" + role.toLowerCase()});
+        fetch(`https://api.kangwoo.tech/tasks/${this.props.match.params.id}`, {
             method: "GET",
             headers: {
                 "Authorization": window.localStorage.getItem("auth")
             }
         }).then(res => {
-            if (!res.ok) { 
+            if (!res.ok) {
                 throw Error(res.statusText + " " + res.status);
             }
             return res.json()
         }).then(data => {
-            console.log(data)
+            console.log(data);
             let users = data.map((info) => {
                 console.log(info.isProgress)
+                console.log(info)
                 if (info.isProgress) {
-                    this.setState({progress: "Progressing"})
+                    this.setState({ progress: "Progressing" })
                 } else {
-                    this.setState({progress: "Not Assigned"})
+                    this.setState({ progress: "Not Assigned" })
                 }
                 return (
                     <div className="row">
                         <div className="username col-md-4">
-                            <p>{info.description}</p>
-                            <button className="btn btn-warning my-2 my-sm-0 pull-right" onClick={() => this.handleProgress(info._id)} disabled={info.progress}>
-                                {this.state.progress}
-                            </button>
+                            <div className="container p-2">
+                                <div className="border">
+                                    <p className="p-2">{info.description}
+                                        <button className="btn btn-warning my-2 my-sm-0 pull-right" onClick={() => this.handleProgress(info._id)} disabled={info.progress||(localStorage.getItem("role")=="Admin")}>
+                                            {this.state.progress}
+                                        </button>
+                                    </p>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 );
+                
             });
-            this.setState({data: users});
+            this.setState({ data: users });
         }).catch(error => {
-                alert(error)
-                localStorage.clear()
-                this.props.history.push({pathname: '/signin'})
-            }        
+            alert(error)
+            localStorage.clear()
+            this.props.history.push({ pathname: '/signin' })
+        }
         )
     }
 
     handleProgress(id) {
-        fetch(`https://localhost:443/tasks/progress/${id}`, {
+        fetch(`https://api.kangwoo.tech/tasks/progress/${id}`, {
             method: "POST",
             headers: {
                 "Authorization": localStorage.getItem("auth")
             }
         }).then(res => {
-            if (!res.ok) { 
+            if (!res.ok) {
                 throw Error(res.statusText + " " + res.status);
             }
             return res.json()
         }).then(data => {
             console.log(data)
-        }).catch(function(error) {
+            window.location.reload();
+        }).catch(function (error) {
             alert()
         })
     }
 
-    componentDidMount() {
-        let sock;
-        document.addEventListener("DOMContentLoaded", (event) => {
-            let auth = localStorage.getItem("auth");
-
-            sock = new WebSocket("wss://api.kangwoo.tech/ws?auth=" + auth);
-
-            sock.onopen = () => {
-                console.log("Connection Opened");
-            };
-            sock.onclose = () => {
-                console.log("Connection Closed");
-            };
-            sock.onmessage = (msg) => {
-                console.log("Message received " + msg.data);
-            };
-            this.setState({sock: sock})
-        })
-    }
-
+   
     handleSignOut() {
-        fetch("https://localhost:443/sessions/mine", {
+        fetch("https://api.kangwoo.tech/sessions/mine", {
             method: "DELETE",
             headers: {
                 "Authorization": localStorage.getItem("auth")
             }
         }).then(res => {
-            if (!res.ok) { 
+            if (!res.ok) {
                 throw Error(res.statusText + " " + res.status);
             }
             localStorage.clear()
-            this.props.history.push({pathname: '/signin'})
-        }).catch(function(error) {
+            this.props.history.push({ pathname: '/signin' })
+        }).catch(function (error) {
             localStorage.clear()
-        })   
+        })
     }
 
     render() {
@@ -121,7 +112,7 @@ export default class MainView extends React.Component {
                         <div className="navbar-nav">
                             <a className="nav-item nav-link active" href="#">Home <span className="sr-only">(current)</span></a>
                             <a className="nav-item nav-link" href={this.state.href}>UserBoard</a>
-                            <a className="nav-item nav-link" href="#">LeaderBoard</a>
+                            {console.log(this.state.href)}
                         </div>
                     </div>
                     <button className="btn btn-warning my-2 my-sm-0 pull-right"

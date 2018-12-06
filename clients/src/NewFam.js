@@ -12,15 +12,15 @@ export default class NewFamView extends React.Component {
         }
     }
 
-    // componentWillMount() {
-    //     let auth = window.localStorage.getItem('auth')
-    //     if (auth !== null ) {
-    //         this.props.history.push({pathname: '/users/me'})
-    //     }
-    // }
+    componentWillMount() {
+        let auth = window.localStorage.getItem('auth')
+        if (auth === null ) {
+            this.props.history.push({pathname: '/signin'})
+        }
+    }
 
     handleSignOut() {
-        fetch("https://localhost:443/sessions/mine", {
+        fetch("https://api.kangwoo.tech/sessions/mine", {
             method: "DELETE",
             headers: {
                 "Authorization": localStorage.getItem("auth")
@@ -37,7 +37,7 @@ export default class NewFamView extends React.Component {
     }
 
     handleMakeRoom() {
-        fetch("https://localhost:443/create", {
+        fetch("https://api.kangwoo.tech/create", {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
@@ -59,12 +59,14 @@ export default class NewFamView extends React.Component {
             return res.json()
         }).then(data => {
             console.log(data)
+            localStorage.setItem("role", "Admin");
+            localStorage.setItem("roomname", this.state.familyRoomName);
             this.props.history.push({pathname: '/main/' + data.roomname})    // go to main task list
         }).catch(function(error) {
             let errorType = document.createElement("p")
             let errorMessage = document.createTextNode("Error to save your data " + error)
             errorType.appendChild(errorMessage)
-            document.getElementById("result").appendChild(errorType)
+            // document.getElementById("result").appendChild(errorType)
         })
     }
 

@@ -86,7 +86,7 @@ func main() {
 	defer ch.Close()
 	request, err := ch.QueueDeclare(
 		"taskQueue", // name matches what we used in our nodejs services
-		true,        // durable
+		false,       // durable
 		false,       // delete when unused
 		false,       // exclusive
 		false,       // no-wait
@@ -94,12 +94,15 @@ func main() {
 	)
 	failOnError(err, "Failed to declare a queue")
 
-	err = ch.Qos(
-		1,     // prefetch count
-		0,     // prefetch size
-		false, // global
-	)
-	failOnError(err, "Failed to set QoS")
+	/*
+		err = ch.Qos(
+			1,     // prefetch count
+			0,     // prefetch size
+			false, // global
+		)
+		failOnError(err, "Failed to set QoS")
+	*/
+
 	msgs, err := ch.Consume(
 		request.Name, // queue
 		"",           // consumer
@@ -109,9 +112,17 @@ func main() {
 		false,        // no-wait
 		nil,          // args
 	)
-	fmt.Printf("Debug: after consume: %v", msgs)
+	// forever := make(chan bool)
+	// log.Printf("Debug: after consume: %v", msgs)
 	failOnError(err, "Failed to register a consumer")
+
+	go n.Start(msgs, request.Name, ctx)
+
+	//forever := make(chan bool)
+	// log.Printf("Debug: after consume: %v", msgs)
+	// failOnError(err, "Failed to register a consumer")
 	// go n.Start(msgs, request.Name, ctx)
+	// <-forever
 	//
 	// request, err := ch.QueueDeclare(
 	// 	"authQueue", // name matches what we used in our go auth
@@ -153,10 +164,11 @@ func main() {
 	mux.HandleFunc("/delete", ctx.DeleteHandler)
 	mux.HandleFunc("/memberlist/", ctx.DisplayHandler)
 
-	// mux.HandleFunc("/ws", ctx.WebSocketsHandler)
+	mux.HandleFunc("/ws", ctx.WebSocketsHandler)
 	wrappedMux := handlers.NewCors(mux)
 	log.Printf("server is listening at %s...", addr)
 	log.Fatal(http.ListenAndServeTLS(addr, tlsCertPath, tlsKeyPath, wrappedMux))
+
 }
 
 func failOnError(err error, msg string) {
