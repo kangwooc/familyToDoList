@@ -97,17 +97,14 @@ func (n *Notifier) Start(msgs <-chan amqp.Delivery, name string, ctx *HandlerCon
 		log.Printf("Received a task: %v", string(d.Body[:]))
 		m := &Message{}
 		if err := json.Unmarshal(d.Body, m); err != nil {
-			log.Printf("Error while unmarshal of d.Body: %v", err)
 			fmt.Errorf("Error while unmarshal of d.Body: %v", err)
 			return
 		}
 
 		log.Printf("Debug: start messages: %v", m)
-		log.Println(m.Task.Description, " ", m.Task.FamilyRoomName, " ", m.Task.IsProgress)
 		// // Get the roomname using getbyroomname() from mysql
 		users, err := ctx.User.GetByRoomName(m.Task.FamilyRoomName)
 		if err != nil {
-			log.Printf("Error while running GetByRoomName: %v", err)
 			fmt.Errorf("Error while running GetByRoomName: %v", err)
 			return
 		}
@@ -116,7 +113,6 @@ func (n *Notifier) Start(msgs <-chan amqp.Delivery, name string, ctx *HandlerCon
 		// Get admin using getadmin() for adding admin to users
 		admin, err := ctx.User.GetAdmin(m.Task.FamilyRoomName, "Admin")
 		if err != nil {
-			log.Printf("Debug: start admin: %v", m.Task.FamilyRoomName)
 			fmt.Errorf("Error while running GetAdmin: %v", err)
 			return
 		}
