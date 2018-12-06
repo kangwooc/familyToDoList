@@ -14,6 +14,9 @@ import ReceiveView from './Receive';
 class App extends Component {
   constructor(props) {
     super(props);
+    this.state = {
+      socket: null
+    }
   }
 
   componentDidMount() {
@@ -30,7 +33,14 @@ class App extends Component {
       console.log("Connection Closed");
     };
   }
+
+  componentDidUpdate() {
+    this.socket.onmessage = (msg) => {
+      console.log("Message received " + msg.data);
+    };
+  }
   render() {
+    
     return (
       <Router>
             <Switch>
@@ -39,12 +49,10 @@ class App extends Component {
               <Route path={ROUTES.deepSign} component={DeepSignUpView} />
               <Route path={ROUTES.newFam} component={NewFamView} />
               <Route path={ROUTES.join} component={JoinView} />
-              <Route path={ROUTES.main} component={MainView} 
-              render = {(props) => <MainView {...props} socket={this.state.socket}/>} />
+              <Route path={ROUTES.main} component={MainView} />
               <Route path={ROUTES.member} component={MemberView} />
               <Route path={ROUTES.admin} component={AdminView} />
-              <Route path={ROUTES.add} component={AddTaskView} 
-              render = {(props) => <AddTaskView {...props} socket={this.state.socket}/>} />
+              <Route path={ROUTES.add} component={AddTaskView} socket={this.state.socket} />
               <Route path={ROUTES.receive} component={ReceiveView} />
               <Redirect to={ROUTES.signIn} />
             </Switch>

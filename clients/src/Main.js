@@ -13,10 +13,8 @@ export default class MainView extends React.Component {
             role: localStorage.getItem("role")
         }
     }
-    componentWillUpdate() {
-        this.props.socket.onmessage = (megs) => {
-            console.log(megs.data);
-        };
+    componentDidMount() {
+        
     }
     componentWillMount() {
         let role = localStorage.getItem("role");
@@ -35,8 +33,8 @@ export default class MainView extends React.Component {
         }).then(data => {
             console.log(data);
             let users = data.map((info) => {
-                console.log(info.isProgress);
-                console.log(info);
+                console.log(info.isProgress)
+                console.log(info)
                 if (info.isProgress) {
                     this.setState({ progress: "Progressing" })
                 } else {
@@ -87,6 +85,7 @@ export default class MainView extends React.Component {
         })
     }
 
+   
     handleSignOut() {
         fetch("https://localhost:443/sessions/mine", {
             method: "DELETE",

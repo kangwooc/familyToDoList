@@ -124,11 +124,13 @@ app.post("/tasks/:roomname", (req, res, next) => {
                 buffer["name"] = "task-new";
                 buffer["task"] = task;
                 // Push to message queue
+                console.log(`About to insert task: ${JSON.stringify(buffer)}`);
                 taskchannel.sendToQueue(
                     "taskQueue",
                     Buffer.from(JSON.stringify(buffer)),
                     {persistent: true}
                 );
+                // console.log("task channel: "+ JSON.stringify(buffer));
                 // Return 201 and application/json
                 res.statusCode = 201;
                 res.setHeader('Content-Type', 'application/json');
@@ -158,7 +160,7 @@ app.patch("/tasks/:id", (req, res, next) => {
     if (userJSON) {
         let user = JSON.parse(userJSON);
         var id = req.params.id;
-        console.log("Debug in patch //tasks/:id " + user);
+        // console.log("Debug in patch //tasks/:id " + user);
         // if a user is not admin, the error should return 401
         if (user.personrole != "Admin") {
             res.statusCode = 401;
@@ -322,8 +324,8 @@ app.post('/tasks/done/:id', (req, res, next) => {
             buffer["point"] = task.point; // increment point!
             taskchannel.sendToQueue(
                 "taskQueue",
-                Buffer.from(JSON.stringify(buffer)),
-                {persistent: true}
+                Buffer.from(JSON.stringify(buffer))
+                //, {persistent: true}
             );
             res.statusCode = 200;
             res.send("Done!");
@@ -349,7 +351,7 @@ amqp.connect(rabbiturl, function (err, conn) {
             console.log("Failed to connect to create channel from API Server.");
             process.exit(1);
         }
-        ch.assertQueue("taskQueue", {durable: true});
+        ch.assertQueue("taskQueue", {durable: false});
         taskchannel = ch;
         // start the server listening on host:port
         app.listen(portNum, host, () => {

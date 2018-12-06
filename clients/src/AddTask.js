@@ -90,6 +90,7 @@ export default class AddTaskView extends React.Component {
             return res.json();
         }).then(data => {
             console.log(data);
+            // this.props.socket.send(data)
         }).catch(error => {
                 alert(error)
                 localStorage.clear()
