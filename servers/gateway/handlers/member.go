@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"final-project-zco/servers/gateway/models/users"
 	"final-project-zco/servers/gateway/sessions"
-	"log"
 	"net/http"
 	"path"
 	"strconv"
@@ -81,20 +80,20 @@ func (context *HandlerContext) DisplayHandler(w http.ResponseWriter, r *http.Req
 		}
 		// check whether current user is an admin
 		if sessionState.User.Role != "Admin" {
-			log.Printf("rrrrole %v", sessionState.User.Role)
+			// log.Printf("rrrrole %v", sessionState.User.Role)
 			http.Error(w, "User must be admin to view all member", http.StatusUnauthorized)
 			return
 		}
 		// if user is authenticated, get the room id
 		roomid := path.Base(r.URL.Path)
-		log.Println("this is roomid %s", roomid)
+		// log.Println("this is roomid %s", roomid)
 		room, err := strconv.ParseInt(roomid, 10, 64)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
 		split := strings.Split(r.URL.Path, "/")
-		log.Println("this is split %d", len(split))
+		// log.Println("this is split %d", len(split))
 		if len(split) > 3 {
 			http.Error(w, "User must be authenticated", http.StatusUnauthorized)
 			return
@@ -104,7 +103,7 @@ func (context *HandlerContext) DisplayHandler(w http.ResponseWriter, r *http.Req
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
-		log.Println("this is fam %v", fam.RoomName)
+		// log.Println("this is fam %v", fam.RoomName)
 
 		// once get the room name, get all the users in that room
 		userArr, err := context.User.GetByRoomName(fam.RoomName)
@@ -112,7 +111,7 @@ func (context *HandlerContext) DisplayHandler(w http.ResponseWriter, r *http.Req
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
-		log.Println("this is userarr %v", userArr)
+		// log.Println("this is userarr %v", userArr)
 
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
