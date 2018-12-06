@@ -40,9 +40,9 @@ export default class MainView extends React.Component {
                 return (
                     <div className="row">
                         <div className="username col-md-4">
-                            <div className="container p-2">
+                          <div className="container p-2">
                                 <div className="border">
-                                    <p className="p-2">{info.description}
+                                    <p className="p-2">{info.description + "    " + info.point + "points"}
                                         <button className="btn btn-warning my-2 my-sm-0 pull-right" onClick={() => this.handleProgress(info._id)} disabled={info.progress||(localStorage.getItem("role")=="Admin")}>
                                             {this.state.progress}
                                         </button>

@@ -6,7 +6,8 @@ export default class MemberView extends React.Component {
         this.state = {
             done: "",
             data: null,
-            href: "/main"
+            href: "/main",
+            score: ""
         }
     }
     componentDidMount() {
@@ -35,6 +36,9 @@ export default class MemberView extends React.Component {
                 console.log(data);
                 let user = data.map((info) => {
                     console.log(info);
+                    if (info.role == "Member") {
+                        this.setState({score: info.score})
+                    }
                     let num = "" + info.userID
                     console.log(localStorage.getItem('userid') == num);
                     // check condition
@@ -46,7 +50,7 @@ export default class MemberView extends React.Component {
                                 <div className="username col-md-4">
                                     <div className="container p-2">
                                         <div className="border">
-                                            <p className="p-2">{info.description}
+                                            <p className="p-2">{info.description + info.point + "points"}
                                                 <button className="btn btn-warning pull-right" onClick={() => this.handleDone(info._id)}>
                                                     Finished
                                                 </button>
@@ -121,6 +125,9 @@ export default class MemberView extends React.Component {
                 </nav>
                 <div>
                     <h3 className="p-3">Current Task List</h3>
+                    <h5 className="p-3">Your current level is Lv.{(this.state.score / 100)}.</h5>
+                    <h5 className="p-3">{100 - (this.state.score % 100)} more points to the next level!</h5>
+
                 </div>
                 {this.state.data}
             </div>
