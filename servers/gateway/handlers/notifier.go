@@ -1,43 +1,32 @@
 package handlers
 
 import (
+	"encoding/json"
+	"fmt"
 	"log"
 	"sync"
 
+	"final-project-zco/servers/gateway/models/users"
+
 	"github.com/gorilla/websocket"
+	"github.com/streadway/amqp"
 )
 
 //Notifier is an object that handles WebSocket notifications.
 //It starts a new
 type Notifier struct {
-	//eventQ is a go channel that
-	//into which one goroutine can
-	//write byte slices, and out of which
-	//another goroutine can read those byte slices
-	eventQ chan []byte
-
-	//TODO: add other fields to this struct
-	//that you might need. For example, you'll
-	//need to track all of the current WebSocket
-	//connections. Remember that slice will be used
-	//by multiple goroutines, so you'll need to
-	//protect it for concurrent use!
-
+	// eventQ chan []byte
 	// map for updating the task list
-	task map[int64]*websocket.Conn
-	mx   sync.RWMutex
+	connections map[int64]*websocket.Conn
+	mx          sync.RWMutex
 }
 
 //NewNotifier constructs a new Notifier
 func NewNotifier() *Notifier {
 	n := &Notifier{
-		eventQ: make(chan []byte, 1024), //buffered channel that can hold 1024 slices at a time
-		task:   make(map[int64]*websocket.Conn),
-		mx:     sync.RWMutex{},
+		connections: make(map[int64]*websocket.Conn),
+		mx:          sync.RWMutex{},
 	}
-
-	//TODO: call the .start() method on its own goroutine
-	go n.start()
 	return n
 }
 
@@ -46,8 +35,7 @@ func (n *Notifier) AddClient(client *websocket.Conn, id int64) {
 	log.Println("adding new WebSockets client")
 	n.mx.Lock()
 	defer n.mx.Unlock()
-
-	n.task[id] = client
+	n.connections[id] = client
 	//TODO: add the client to the slice you are using
 	//to track all current WebSocket connections.
 	//Since this can be called from multiple
@@ -67,18 +55,83 @@ func (n *Notifier) readLoop(c *websocket.Conn) {
 	}
 }
 
-//Notify broadcasts the event to all WebSocket clients
-func (n *Notifier) Notify(event []byte) {
-	log.Printf("adding event to the queue")
-	//TODO: add `event` to the `n.eventQ`
-	//see https://tour.golang.org/concurrency/2
-	//and https://gobyexample.com/channels
-	n.eventQ <- event
+// Task is the struct that stands for Task object from microservice
+type Task struct {
+	description    string
+	point          int
+	isProgress     bool
+	familyID       int
+	familyRoomName string
+	userID         int
 }
 
-//start starts the notification loop
-func (n *Notifier) start() {
+// Message stands for the message queue from the Task microservice
+type Message struct {
+	name  string
+	task  *Task
+	tasks []*Task
+	point int
+	user  *users.User
+}
+
+// RemoveConnection is the method that remove connection
+// It is a thread-safe method for inserting a connection
+func (n *Notifier) RemoveConnection(conn *websocket.Conn, userID int64) {
+	n.mx.Lock()
+	// delete socket connection
+	delete(n.connections, userID)
+	n.mx.Unlock()
+}
+
+// Start starts the notification loop
+func (n *Notifier) Start(msgs <-chan amqp.Delivery, name string, ctx *HandlerContext) {
 	log.Println("starting notifier loop")
+	// for msg := range msgs {
+	n.mx.Lock()
+	defer n.mx.Unlock()
+	for {
+		for d := range msgs {
+			// if name == "taskQueue" {
+			m := &Message{}
+			if err := json.Unmarshal(d.Body, m); err != nil {
+				fmt.Errorf("Error while unmarshal of d.Body: %v", err)
+				return
+			}
+			// Get the roomname using getbyroomname() from mysql
+			users, err := ctx.User.GetByRoomName(m.task.familyRoomName)
+			if err != nil {
+				fmt.Errorf("Error while running GetByRoomName: %v", err)
+				return
+			}
+			// Get admin using getadmin() for adding admin to users
+			admin, err := ctx.User.GetAdmin(m.task.familyRoomName, "Admin")
+			if err != nil {
+				fmt.Errorf("Error while running GetAdmin: %v", err)
+				return
+			}
+			users = append(users, admin)
+			// if the done
+			if m.name == "task-done" {
+				// should update points to mysql
+				if _, err := ctx.User.UpdateScore(m.user.ID, m.point); err != nil {
+					fmt.Errorf("Error while running UpdateScore: %v", err)
+					return
+				}
+			}
+			// for loop through family members and write the message to the connections
+			for _, user := range users {
+				conn := n.connections[user.ID]
+				// if Writemessage has an error, break the loop.
+				if err := conn.WriteMessage(1, d.Body); err != nil {
+					n.RemoveConnection(conn, user.ID)
+					break
+				}
+			}
+			// } else {
+
+			// }
+		}
+	}
 
 	//TODO: start a never-ending loop that reads
 	//new events out of the `n.eventQ` and broadcasts

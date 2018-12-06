@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"final-project-zco/servers/gateway/models/users"
 	"final-project-zco/servers/gateway/sessions"
-	"fmt"
+	"fmt" // "log"
 	"log"
 	"net/http"
 	"path"
@@ -15,7 +15,7 @@ import (
 
 //UsersHandler handles requests for the "users" resource.
 //it will accept POST requests to create new user account
-// sign up
+// sign up => /users
 func (context *HandlerContext) UsersHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method == http.MethodPost {
 		header := r.Header.Get("Content-Type")
@@ -47,11 +47,13 @@ func (context *HandlerContext) UsersHandler(w http.ResponseWriter, r *http.Reque
 			SessionBegan: time.Now(),
 			User:         dbuser,
 		}
-		_, err = sessions.BeginSession(context.SigningKey, context.Session, newSessionState, w)
+
+		sid, err := sessions.BeginSession(context.SigningKey, context.Session, newSessionState, w)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
+		log.Printf("Debug sid from userhandler: %s", sid.String())
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusCreated)
 		err = json.NewEncoder(w).Encode(user)
@@ -66,7 +68,7 @@ func (context *HandlerContext) UsersHandler(w http.ResponseWriter, r *http.Reque
 }
 
 // CreateHandler create a family room
-// post "/create/"
+// post "/create"
 func (context *HandlerContext) CreateHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method == http.MethodPost {
 		header := r.Header.Get("Content-Type")
@@ -74,21 +76,24 @@ func (context *HandlerContext) CreateHandler(w http.ResponseWriter, r *http.Requ
 			http.Error(w, "Request body must be in JSON", http.StatusUnsupportedMediaType)
 			return
 		}
-		// id := path.Base(r.URL.Path)
-		// split := strings.Split(r.URL.Path, "/")
-		// if len(split) > 4 {
-		// 	http.Error(w, "User must be authenticated", http.StatusUnauthorized)
-		// 	return
-		// }
 		sessionState := &SessionState{}
-		_, err := sessions.GetState(r, context.SigningKey, context.Session, sessionState)
+		sid, err := sessions.GetState(r, context.SigningKey, context.Session, sessionState)
 		if err != nil {
 			http.Error(w, "User must be authenticated", http.StatusUnauthorized)
 			return
 		}
 
 		numID := sessionState.User.ID
-
+		u, err := context.User.GetByID(numID)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusBadRequest)
+			return
+		}
+		log.Println("user role %v", u.Role)
+		if u.Role == "Admin" {
+			http.Error(w, "User must be default to create a room", http.StatusUnauthorized)
+			return
+		}
 		var family *users.FamilyRoom
 		if err := json.NewDecoder(r.Body).Decode(&family); err != nil {
 			http.Error(w, "Decoding problem", http.StatusBadRequest)
@@ -96,77 +101,39 @@ func (context *HandlerContext) CreateHandler(w http.ResponseWriter, r *http.Requ
 		}
 		admin := &users.Updates{Role: "Admin", RoomName: family.RoomName}
 		// update the user role to be admin
-
 		added, err := context.User.UpdateToMember(numID, admin)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
 
-		log.Printf("this is user yo %v", added)
+		sessionState.User.Role = admin.Role
+		sessionState.User.RoomName = admin.RoomName
+		if err = context.Session.Save(sid, sessionState); err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+		se := &SessionState{}
+
+		context.Session.Get(sid, se)
+		log.Println("user added role se %v", se.User.Role)
+
+		if err = added.ApplyUpdates(admin); err != nil {
+			http.Error(w, err.Error(), http.StatusBadRequest)
+			return
+		}
+		log.Println("user added role %v", added.Role)
+
 		// insert into family table
 		fam, err := context.Family.InsertFam(family)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusBadRequest)
 			return
 		}
+
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusCreated)
-		err = json.NewEncoder(w).Encode(fam)
-		if err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
-		}
-	} else {
-		http.Error(w, "Current status method is not allowed", http.StatusMethodNotAllowed)
-		return
-	}
-}
-
-// JoinHandler join a family room
-func (context *HandlerContext) JoinHandler(w http.ResponseWriter, r *http.Request) {
-	log.Println("heihhh")
-	if r.Method == http.MethodPatch { // what method
-		header := r.Header.Get("Content-Type")
-		if !strings.HasPrefix(header, "application/json") {
-			http.Error(w, "Request body must be in JSON", http.StatusUnsupportedMediaType)
-			return
-		}
-		// id := path.Base(r.URL.Path)
-		// split := strings.Split(r.URL.Path, "/")
-		// if len(split) > 4 {
-		// 	http.Error(w, "User must be authenticated", http.StatusUnauthorized)
-		// 	return
-		// }
-		sessionState := &SessionState{}
-		_, err := sessions.GetState(r, context.SigningKey, context.Session, sessionState)
-		if err != nil {
-			http.Error(w, "User must be authenticated", http.StatusUnauthorized)
-			return
-		}
-		numID := sessionState.User.ID
-
-		var update *users.Updates
-		// decode the entered family room name
-		if err := json.NewDecoder(r.Body).Decode(&update); err != nil {
-			http.Error(w, err.Error(), http.StatusBadRequest)
-			return
-		}
-
-		member := &users.Updates{Role: "Member", RoomName: update.RoomName}
-		// update the user role to be admin
-		if _, err := context.User.UpdateToMember(numID, member); err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
-		}
-		added, err := context.User.GetByID(numID)
-		if err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
-		}
-		w.Header().Set("Content-Type", "application/json")
-		w.WriteHeader(http.StatusCreated)
-		if err = json.NewEncoder(w).Encode(added); err != nil {
+		if err = json.NewEncoder(w).Encode(fam); err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}

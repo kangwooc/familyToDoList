@@ -4,6 +4,7 @@ import (
 	"crypto/md5"
 	"encoding/hex"
 	"fmt"
+	"log"
 	"strings"
 
 	"golang.org/x/crypto/bcrypt"
@@ -25,6 +26,7 @@ type User struct {
 	PhotoURL  string `json:"photourl"`
 	Role      string `json:"personrole"`
 	RoomName  string `json:"roomname"`
+	Score     int    `json:"score"`
 }
 
 //Credentials represents user sign-in credentials
@@ -44,8 +46,9 @@ type NewUser struct {
 
 //Updates represents allowed updates to a user profile
 type Updates struct {
-	Role     string `json:"role"`
+	Role     string `json:"personrole"`
 	RoomName string `json:"roomname"`
+	Score    int    `json:"score"`
 }
 
 //FamilyRoom represents family room table
@@ -87,6 +90,7 @@ func (nu *NewUser) ToUser() (*User, error) {
 	user.FirstName = nu.FirstName
 	user.LastName = nu.LastName
 	user.Role = "default"
+	user.Score = 0
 	er := user.SetPassword(nu.Password)
 	if er != nil {
 		return nil, er
@@ -124,6 +128,10 @@ func (u *User) Authenticate(password string) error {
 //ApplyUpdates applies the updates to the user. An error
 //is returned if the updates are invalid
 func (u *User) ApplyUpdates(updates *Updates) error {
+	log.Printf("apple update wrong")
+
 	u.Role = updates.Role
+	u.RoomName = updates.RoomName
+	u.Score = updates.Score
 	return nil
 }

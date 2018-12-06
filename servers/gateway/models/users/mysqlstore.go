@@ -3,15 +3,18 @@ package users
 import (
 	"database/sql"
 	"fmt"
+	"log"
 	"strconv"
 )
 
 const (
-	insert         = "insert into users (username,passhash,firstname,lastname,photourl,personrole,roomname) values ( ?,?,?,?,?,?,? )"
+	insert         = "insert into users (username,passhash,firstname,lastname,photourl,personrole,roomname,score) values ( ?,?,?,?,?,?,?,? )"
 	selectID       = `Select * From users Where id=?`
+	selectAdmin    = `Select * From users Where personrole=? And roomname=?`
 	getUserName    = `Select * From users Where username=?`
 	update         = "update users set personrole=? where id=?"
-	updateToMember = "update users set personrole=?, roomname=? where id=?"
+	updatePoint    = "update users set score=? where id=?"
+	updateToMember = "update users set roomname=?, personrole=? where id=?"
 	del            = "delete from users where id=?"
 )
 
@@ -34,7 +37,7 @@ func NewMySQLStore(db *sql.DB) *MySQLStore {
 //new primary key value
 func (s *MySQLStore) Insert(user *User) (*User, error) {
 	results, err := s.db.Exec(insert,
-		user.UserName, user.PassHash, user.FirstName, user.LastName, user.PhotoURL, user.Role, user.RoomName)
+		user.UserName, user.PassHash, user.FirstName, user.LastName, user.PhotoURL, user.Role, user.RoomName, user.Score)
 	if err != nil {
 		return nil, fmt.Errorf("executing insert: %v", err)
 	}
@@ -82,7 +85,7 @@ func getByHelper(s *MySQLStore, identifier string, command string) (*User, error
 	}
 	user := &User{}
 	if err := row.Scan(&user.ID, &user.UserName, &user.PassHash,
-		&user.FirstName, &user.LastName, &user.PhotoURL, &user.Role, &user.RoomName); err != nil {
+		&user.FirstName, &user.LastName, &user.PhotoURL, &user.Role, &user.RoomName, &user.Score); err != nil {
 		if err == sql.ErrNoRows {
 			return nil, ErrUserNotFound
 		}
@@ -94,10 +97,26 @@ func getByHelper(s *MySQLStore, identifier string, command string) (*User, error
 //GetByID returns a specific user according to given id or ErrUserNotFound
 //if the requested user does not exist
 func (s *MySQLStore) GetByID(id int64) (*User, error) {
+	log.Printf("iddddddddssssdd %d", id)
+
 	row := s.db.QueryRow(selectID, id)
 	user := &User{}
 	if err := row.Scan(&user.ID, &user.UserName, &user.PassHash,
-		&user.FirstName, &user.LastName, &user.PhotoURL, &user.Role, &user.RoomName); err != nil {
+		&user.FirstName, &user.LastName, &user.PhotoURL, &user.Role, &user.RoomName, &user.Score); err != nil {
+		if err == sql.ErrNoRows {
+			log.Println("efefe")
+			return nil, ErrUserNotFound
+		}
+		return nil, fmt.Errorf("scanning: %v", err)
+	}
+	return user, nil
+}
+
+func (s *MySQLStore) GetAdmin(roomname string, role string) (*User, error) {
+	row := s.db.QueryRow(selectAdmin, role, roomname)
+	user := &User{}
+	if err := row.Scan(&user.ID, &user.UserName, &user.PassHash,
+		&user.FirstName, &user.LastName, &user.PhotoURL, &user.Role, &user.RoomName, &user.Score); err != nil {
 		if err == sql.ErrNoRows {
 			return nil, ErrUserNotFound
 		}
@@ -109,11 +128,21 @@ func (s *MySQLStore) GetByID(id int64) (*User, error) {
 //GetByUserName returns a specific user according to the given username, or ErrNotFound
 //if the requested user does not exist
 func (s *MySQLStore) GetByUserName(username string) (*User, error) {
-	return getByHelper(s, getUserName, username)
+	row := s.db.QueryRow(getUserName, username)
+	user := &User{}
+	if err := row.Scan(&user.ID, &user.UserName, &user.PassHash,
+		&user.FirstName, &user.LastName, &user.PhotoURL, &user.Role, &user.RoomName, &user.Score); err != nil {
+		if err == sql.ErrNoRows {
+			return nil, ErrUserNotFound
+		}
+		return nil, fmt.Errorf("scanning: %v", err)
+	}
+	return user, nil
 }
 
+//UpdateToMember updates member info
 func (s *MySQLStore) UpdateToMember(id int64, updates *Updates) (*User, error) {
-	results, err := s.db.Exec(updateToMember, updates.Role, updates.RoomName, id)
+	results, err := s.db.Exec(updateToMember, updates.RoomName, updates.Role, id)
 	if err != nil {
 		return nil, fmt.Errorf("updating: %v", err)
 	}
@@ -125,15 +154,52 @@ func (s *MySQLStore) UpdateToMember(id int64, updates *Updates) (*User, error) {
 	//if no rows were affected, then the requested
 	//ID was not in the database
 	if affected == 0 {
+		log.Printf("member wrong")
 		return nil, ErrUserNotFound
 	}
 	return s.GetByID(id)
+}
+
+func (s *MySQLStore) GetRoomName(id int64) (*FamilyRoom, error) {
+	row := s.db.QueryRow("Select * From familyroom Where id=?", id)
+
+	family := &FamilyRoom{}
+	if err := row.Scan(&family.ID, &family.RoomName); err != nil {
+		if err == sql.ErrNoRows {
+			return nil, ErrUserNotFound
+		}
+		return nil, fmt.Errorf("scanning: %v", err)
+	}
+	return family, nil
+}
+
+func (s *MySQLStore) GetByRoomName(roomname string) ([]*User, error) {
+	var res []*User
+	rows, err := s.db.Query("Select * From users Where roomname=? And personrole=?", roomname, "Member")
+	if err != nil {
+		fmt.Println(err)
+		return nil, err
+	}
+	defer rows.Close()
+	for rows.Next() {
+		user := &User{}
+		if err := rows.Scan(&user.ID, &user.UserName, &user.PassHash,
+			&user.FirstName, &user.LastName, &user.PhotoURL, &user.Role, &user.RoomName, &user.Score); err != nil {
+			if err == sql.ErrNoRows {
+				return nil, ErrUserNotFound
+			}
+		}
+		res = append(res, user)
+	}
+
+	return res, nil
 }
 
 //Update updates a user to the given user ID
 //and returns the newly-inserted User. It returns
 //nil and ErrUserNotFound if the task ID does not exist.
 func (s *MySQLStore) Update(id int64, updates *Updates) (*User, error) {
+	log.Printf("idddddd %d", id)
 	results, err := s.db.Exec(update, updates.Role, id)
 	if err != nil {
 		return nil, fmt.Errorf("updating: %v", err)
@@ -146,6 +212,26 @@ func (s *MySQLStore) Update(id int64, updates *Updates) (*User, error) {
 	//if no rows were affected, then the requested
 	//ID was not in the database
 	if affected == 0 {
+		log.Printf("zeroccc row")
+		return nil, ErrUserNotFound
+	}
+	return s.GetByID(id)
+}
+
+func (s *MySQLStore) UpdateScore(id int64, point int) (*User, error) {
+	results, err := s.db.Exec(update, point, id)
+	if err != nil {
+		return nil, fmt.Errorf("updating: %v", err)
+	}
+	affected, err := results.RowsAffected()
+	if err != nil {
+		return nil, fmt.Errorf("getting rows affected: %v", err)
+	}
+
+	//if no rows were affected, then the requested
+	//ID was not in the database
+	if affected == 0 {
+		log.Printf("zero row")
 		return nil, ErrUserNotFound
 	}
 	return s.GetByID(id)

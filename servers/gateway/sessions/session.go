@@ -24,7 +24,7 @@ func BeginSession(signingKey string, store Store, sessionState interface{}, w ht
 	if err != nil {
 		return InvalidSessionID, err
 	}
-	log.Printf("begin session: %v", sessionState)
+	// log.Printf("begin session: %v", sessionState)
 	if err = store.Save(id, sessionState); err != nil {
 		return InvalidSessionID, err
 	}
@@ -47,7 +47,11 @@ func GetSessionID(r *http.Request, signingKey string) (SessionID, error) {
 		str = authQuery[1]
 	} else {
 		// Split the Authorization hearer into 2 (e.g. ["Bearer", "SessionID"])
+		log.Printf("Debug header bearer = %v", header)
+		log.Printf("Debug header[0] = %v", header[0])
+		log.Printf("Debug len(header)= %d", len(header))
 		if header[0] != "Bearer" {
+			log.Printf("lets check")
 			return InvalidSessionID, ErrInvalidScheme
 		}
 		str = header[1]
@@ -65,16 +69,17 @@ func GetSessionID(r *http.Request, signingKey string) (SessionID, error) {
 //GetState extracts the SessionID from the request,
 //gets the associated state from the provided store into
 //the `sessionState` parameter, and returns the SessionID
-func GetState(r *http.Request, signingKey string, store Store,
-	sessionState interface{}) (SessionID, error) {
+func GetState(r *http.Request, signingKey string, store Store, sessionState interface{}) (SessionID, error) {
 	id, err := GetSessionID(r, signingKey)
 	if err != nil {
+		log.Printf("Debug GetState error %v", err)
 		return InvalidSessionID, ErrStateNotFound
 	}
 	if err = store.Get(id, sessionState); err != nil {
+		log.Printf("Debug GetState store error %v", err)
 		return InvalidSessionID, ErrStateNotFound
 	}
-	log.Printf("get state: %v", sessionState)
+	// log.Printf("get state: %v", sessionState)
 
 	return id, nil
 }
