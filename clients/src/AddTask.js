@@ -7,10 +7,32 @@ export default class AddTaskView extends React.Component {
     constructor(props) {
         super(props);
         this.state = {
-            task: ""
+            task: "",
+            socket: null
         }
         this.handleSubmit = this.handleSubmit.bind(this)
     }
+
+    componentDidMount() {
+        let auth = localStorage.getItem("auth");
+        let url = "wss://localhost:443/ws?auth=" + auth;
+        
+        this.socket = new WebSocket(url);
+        this.setState({socket : this.socket});
+        this.socket.onopen = () => {
+          console.log("Connection Opened");
+        };
+    
+        this.socket.onclose = () => {
+          console.log("Connection Closed");
+        };
+      }
+    componentDidUpdate() {
+        this.state.socket.onmessage = (msg) => {
+          console.log("Message received " + msg.data);
+        };
+      }
+
     handleSignOut() {
         fetch("https://localhost:443/sessions/mine", {
             method: "DELETE",

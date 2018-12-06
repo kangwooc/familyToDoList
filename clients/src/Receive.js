@@ -121,6 +121,7 @@ export default class ReceiveView extends React.Component {
     }
 
     render() {
+
         return (
             <div>
                 <nav className="navbar navbar-expand-lg navbar-dark bg-secondary">

@@ -19,28 +19,28 @@ class App extends Component {
     }
   }
 
-  componentDidMount() {
-    let auth = localStorage.getItem("auth");
-    let url = "wss://localhost:443/ws?auth=" + auth;
+  // componentDidMount() {
+  //   let auth = localStorage.getItem("auth");
+  //   let url = "wss://localhost:443/ws?auth=" + auth;
     
-    this.socket = new WebSocket(url);
-    this.setState({socket : this.socket});
-    this.socket.onopen = () => {
-      console.log("Connection Opened");
-    };
+  //   this.socket = new WebSocket(url);
+  //   this.setState({socket : this.socket});
+  //   this.socket.onopen = () => {
+  //     console.log("Connection Opened");
+  //   };
 
-    this.socket.onclose = () => {
-      console.log("Connection Closed");
-    };
-  }
+  //   this.socket.onclose = () => {
+  //     console.log("Connection Closed");
+  //   };
+  // }
 
-  componentDidUpdate() {
-    this.socket.onmessage = (msg) => {
-      console.log("Message received " + msg.data);
-    };
-  }
+  // componentDidUpdate() {
+  //   this.socket.onmessage = (msg) => {
+  //     console.log("Message received " + msg.data);
+  //     window.location.reload();
+  //   };
+  // }
   render() {
-    
     return (
       <Router>
             <Switch>

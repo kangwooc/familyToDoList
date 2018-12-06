@@ -7,7 +7,8 @@ export default class JoinView extends React.Component {
     constructor(props) {
         super(props);
         this.state = {
-            roomname: ""
+            roomname: "",
+            role: "",
         }
     }
 

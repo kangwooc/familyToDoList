@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"final-project-zco/servers/gateway/models/users"
 	"final-project-zco/servers/gateway/sessions"
-	"fmt" // "log"
+	"fmt"
 	"net/http"
 	"path"
 	"strconv"

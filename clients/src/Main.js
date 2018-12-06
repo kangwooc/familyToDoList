@@ -10,12 +10,41 @@ export default class MainView extends React.Component {
             progress: "",
             admin: true,
             status: "",
-            role: localStorage.getItem("role")
+            role: localStorage.getItem("role"),
+            msg: null
         }
     }
     componentDidMount() {
+        let auth = localStorage.getItem("auth");
+        let url = "wss://localhost:443/ws?auth=" + auth;
         
+        this.socket = new WebSocket(url);
+        this.setState({socket : this.socket});
+        this.socket.onopen = () => {
+          console.log("Connection Opened");
+        };
+    
+        this.socket.onclose = () => {
+          console.log("Connection Closed");
+        };
+      }
+    
+      componentDidUpdate() {
+        this.socket.onmessage = (msg) => {
+          console.log("Message received " + msg.data);
+          this.setState({msg: msg.data})
+        };
+      }
+
+
+    renderTask = (task) => {
+        return (
+            <div>
+
+            </div>
+        );
     }
+    
     componentWillMount() {
         let role = localStorage.getItem("role");
         console.log(role);
@@ -106,6 +135,7 @@ export default class MainView extends React.Component {
     render() {
         return (
             <div>
+                {this.state.msg}
                 <nav className="navbar navbar-expand-lg navbar-dark bg-secondary">
                     <a className="navbar-brand" href="#">To Do App</a>
                     <button className="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNavAltMarkup" aria-controls="navbarNavAltMarkup" aria-expanded="false" aria-label="Toggle navigation">

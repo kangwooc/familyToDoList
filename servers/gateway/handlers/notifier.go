@@ -94,51 +94,71 @@ func (n *Notifier) Start(msgs <-chan amqp.Delivery, name string, ctx *HandlerCon
 	// defer n.mx.Unlock()
 	for {
 		d := <-msgs
-		log.Printf("Received a task: %v", string(d.Body[:]))
-		m := &Message{}
-		if err := json.Unmarshal(d.Body, m); err != nil {
-			log.Printf("Error while unmarshal of d.Body: %v", err)
-			fmt.Errorf("Error while unmarshal of d.Body: %v", err)
-			return
-		}
-
-		log.Printf("Debug: start messages: %v", m)
-		log.Println(m.Task.Description, " ", m.Task.FamilyRoomName, " ", m.Task.IsProgress)
-		// // Get the roomname using getbyroomname() from mysql
-		users, err := ctx.User.GetByRoomName(m.Task.FamilyRoomName)
-		if err != nil {
-			log.Printf("Error while running GetByRoomName: %v", err)
-			fmt.Errorf("Error while running GetByRoomName: %v", err)
-			return
-		}
-		log.Printf("Debug: start users: %v", users)
-		log.Printf(m.Task.FamilyRoomName)
-		// Get admin using getadmin() for adding admin to users
-		admin, err := ctx.User.GetAdmin(m.Task.FamilyRoomName, "Admin")
-		if err != nil {
-			log.Printf("Debug: start admin: %v", m.Task.FamilyRoomName)
-			fmt.Errorf("Error while running GetAdmin: %v", err)
-			return
-		}
-		log.Printf("Debug: start admin2: %v", admin)
-		users = append(users, admin)
-		// if the done
-		if m.Name == "task-done" {
-			// should update points to mysql
-			if _, err := ctx.User.UpdateScore(m.User.ID, m.Point); err != nil {
-				fmt.Errorf("Error while running UpdateScore: %v", err)
+		if name == "authQueue" {
+			log.Printf("Received a auth: %v", string(d.Body[:]))
+			user := &users.User{}
+			if err := json.Unmarshal(d.Body, user); err != nil {
+				log.Printf("Error while unmarshal of d.Body: %v", err)
+				fmt.Errorf("Error while unmarshal of d.Body: %v", err)
 				return
 			}
-		}
-		// for loop through family members and write the message to the connections
-		for _, user := range users {
-			conn := n.connections[user.ID]
+			log.Printf("Received a auth: %v", user)
+			admin, err := ctx.User.GetAdmin(user.RoomName, "Admin")
+			if err != nil {
+				fmt.Errorf("Error while running GetAdmin: %v", err)
+				return
+			}
+			conn := n.connections[admin.ID]
 			// if Writemessage has an error, break the loop.
 			if err := conn.WriteMessage(websocket.TextMessage, d.Body); err != nil {
-				n.RemoveConnection(conn, user.ID)
-				break
+				n.RemoveConnection(conn, admin.ID)
+			}
+		} else {
+			log.Printf("Received a task: %v", string(d.Body[:]))
+			m := &Message{}
+			if err := json.Unmarshal(d.Body, m); err != nil {
+				log.Printf("Error while unmarshal of d.Body: %v", err)
+				fmt.Errorf("Error while unmarshal of d.Body: %v", err)
+				return
+			}
+
+			log.Printf("Debug: start messages: %v", m)
+			log.Println(m.Task.Description, " ", m.Task.FamilyRoomName, " ", m.Task.IsProgress)
+			// // Get the roomname using getbyroomname() from mysql
+			users, err := ctx.User.GetByRoomName(m.Task.FamilyRoomName)
+			if err != nil {
+				log.Printf("Error while running GetByRoomName: %v", err)
+				fmt.Errorf("Error while running GetByRoomName: %v", err)
+				return
+			}
+			log.Printf("Debug: start users: %v", users)
+			log.Printf(m.Task.FamilyRoomName)
+			// Get admin using getadmin() for adding admin to users
+			admin, err := ctx.User.GetAdmin(m.Task.FamilyRoomName, "Admin")
+			if err != nil {
+				log.Printf("Debug: start admin: %v", m.Task.FamilyRoomName)
+				fmt.Errorf("Error while running GetAdmin: %v", err)
+				return
+			}
+			log.Printf("Debug: start admin2: %v", admin)
+			users = append(users, admin)
+			// if the done
+			if m.Name == "task-done" {
+				// should update points to mysql
+				if _, err := ctx.User.UpdateScore(m.User.ID, m.Point); err != nil {
+					fmt.Errorf("Error while running UpdateScore: %v", err)
+					return
+				}
+			}
+			// for loop through family members and write the message to the connections
+			for _, user := range users {
+				conn := n.connections[user.ID]
+				// if Writemessage has an error, break the loop.
+				if err := conn.WriteMessage(websocket.TextMessage, d.Body); err != nil {
+					n.RemoveConnection(conn, user.ID)
+					break
+				}
 			}
 		}
-
 	}
 }

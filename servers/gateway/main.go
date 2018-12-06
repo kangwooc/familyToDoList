@@ -124,32 +124,27 @@ func main() {
 	// go n.Start(msgs, request.Name, ctx)
 	// <-forever
 	//
-	// request, err := ch.QueueDeclare(
-	// 	"authQueue", // name matches what we used in our go auth
-	// 	true,        // durable
-	// 	false,       // delete when unused
-	// 	false,       // exclusive
-	// 	false,       // no-wait
-	// 	nil,         // arguments
-	// )
-	// failOnError(err, "Failed to declare a queue")
+	request, err = ch.QueueDeclare(
+		"authQueue", // name matches what we used in our go auth
+		false,        // durable
+		false,       // delete when unused
+		false,       // exclusive
+		false,       // no-wait
+		nil,         // arguments
+	)
+	failOnError(err, "Failed to declare a queue")
 
-	// err = ch.Qos(
-	// 	1,     // prefetch count
-	// 	0,     // prefetch size
-	// 	false, // global
-	// )
-	// failOnError(err, "Failed to set QoS")
-	// msgs, err := ch.Consume(
-	// 	request.Name, // queue
-	// 	"",           // consumer
-	// 	false,        // auto-ack
-	// 	false,        // exclusive
-	// 	false,        // no-local
-	// 	false,        // no-wait
-	// 	nil,          // args
-	// )
-	// go n.Start()
+	failOnError(err, "Failed to set QoS")
+	msgs, err = ch.Consume(
+		request.Name, // queue
+		"",           // consumer
+		false,        // auto-ack
+		false,        // exclusive
+		false,        // no-local
+		false,        // no-wait
+		nil,          // args
+	)
+	go n.Start(msgs, request.Name, ctx)
 	mux := http.NewServeMux()
 	mux.Handle("/tasks/", ctx.NewServiceProxy(taskaddr))
 
@@ -176,19 +171,3 @@ func failOnError(err error, msg string) {
 		log.Fatalf("%s: %s", msg, err)
 	}
 }
-
-// func processMessages(ctx *handlers.MyHandler, msgs <-chan amqp.Delivery) {
-// 	for msg := range msgs {
-// 		// newMessage := msg.Body
-// 		handler := &ctx.Chann
-// 		err := json.Unmarshal(msg.Body, handler)
-// 		if err != nil {
-// 			log.Printf("error unmarshal %s", err)
-// 			return
-// 		}
-// 		log.Printf("received message: %s", string(msg.Body))
-// 		// var sharedChannel chan []byte
-// 		// sharedChannel <- newMessage
-// 		msg.Ack(false)
-// 	}
-// }
