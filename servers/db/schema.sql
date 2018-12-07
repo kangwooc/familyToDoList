@@ -18,10 +18,3 @@ create table if not exists users (
     roomname varchar(128),
     score INT
 );
-
-create table if not exists userlogin (
-    id INT PRIMARY KEY auto_increment NOT NULL, 
-    userid int not NULL,
-    timesignin DATETIME NOT NULL,
-    ipaddr VARCHAR(2083) NOT NULL
-);
