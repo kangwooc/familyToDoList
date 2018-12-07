@@ -74,7 +74,9 @@ export default class MemberView extends React.Component {
                 });
                 this.setState({ data: user });
             })
-            .catch(error)(alert(error));
+            .catch(error => {
+                alert(error);
+            });
     }
     handleDone(id) {
         fetch(`https://localhost:443/tasks/done/${id}`, {
