@@ -13,7 +13,7 @@ export default class AdminView extends React.Component {
     componentDidMount() {
         let room = localStorage.getItem("roomname")
         console.log(room)
-        this.setState({ href: "/main/" + this.state.roomname.toLowerCase() })
+        this.setState({ href: "/main/" + room.toLowerCase() })
     }
 
     handleDelete(id) {

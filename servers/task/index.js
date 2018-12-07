@@ -55,8 +55,8 @@ app.get('/tasks/:roomname', (req, res, next) => {
     // Check whether user is authenticated using X-user header
     let userJSON = req.get("X-User");
     if (userJSON) {
-        var roomname = req.params.roomname;
-        Task.find({"familyRoomName": roomname}).exec((err, tasks) => {
+        var user = JSON.parse(userJSON);
+        Task.find({"familyRoomName": user.roomname}).exec((err, tasks) => {
             if (err) {
                 res.statusCode = 500;
                 res.send("Error while finding tasks");
@@ -123,6 +123,7 @@ app.post("/tasks/:roomname", (req, res, next) => {
                 // message queue
                 buffer["name"] = "task-new";
                 buffer["task"] = task;
+                buffer["point"] = 5;
                 // Push to message queue
                 console.log(`About to insert task: ${JSON.stringify(buffer)}`);
                 taskchannel.sendToQueue(
