@@ -24,7 +24,15 @@ export default class ReceiveView extends React.Component {
 
         this.socket.onmessage = msg => {
             console.log("Message received " + msg.data);
-            window.location.reload();
+            msg = JSON.parse(msg.data);
+            console.log(msg.username !== null);
+            if (msg.username !== null) {
+                this.setState(prevState => {
+                    return {
+                        data: [...prevState.data, msg]
+                    };
+                });
+            }
         };
 
         fetch(" https://localhost:443/receive", {
@@ -201,8 +209,8 @@ export default class ReceiveView extends React.Component {
                     <h3 className="p-3">Current Request</h3>
                 </div>
                 {this.state.data.length > 0 ? (
-                    this.state.data.map(task => {
-                        return this.renderTask(task);
+                    this.state.data.map(user => {
+                        return this.renderUser(user);
                     })
                 ) : (
                     <div>No Member</div>
