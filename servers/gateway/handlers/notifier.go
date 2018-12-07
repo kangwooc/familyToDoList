@@ -2,11 +2,10 @@ package handlers
 
 import (
 	"encoding/json"
+	"final-project-zco/servers/gateway/models/users"
 	"fmt"
 	"log"
 	"sync"
-
-	"final-project-zco/servers/gateway/models/users"
 
 	"github.com/gorilla/websocket"
 	"github.com/streadway/amqp"
@@ -94,44 +93,12 @@ func (n *Notifier) Start(msgs <-chan amqp.Delivery, name string, ctx *HandlerCon
 	// defer n.mx.Unlock()
 	for {
 		d := <-msgs
-<<<<<<< HEAD
-		log.Printf("Received a task: %v", string(d.Body[:]))
-		m := &Message{}
-		if err := json.Unmarshal(d.Body, m); err != nil {
-			fmt.Errorf("Error while unmarshal of d.Body: %v", err)
-			return
-		}
-
-		log.Printf("Debug: start messages: %v", m)
-		// // Get the roomname using getbyroomname() from mysql
-		users, err := ctx.User.GetByRoomName(m.Task.FamilyRoomName)
-		if err != nil {
-			fmt.Errorf("Error while running GetByRoomName: %v", err)
-			return
-		}
-		log.Printf("Debug: start users: %v", users)
-		log.Printf(m.Task.FamilyRoomName)
-		// Get admin using getadmin() for adding admin to users
-		admin, err := ctx.User.GetAdmin(m.Task.FamilyRoomName, "Admin")
-		if err != nil {
-			fmt.Errorf("Error while running GetAdmin: %v", err)
-			return
-		}
-		log.Printf("Debug: start admin2: %v", admin)
-		users = append(users, admin)
-		// if the done
-		if m.Name == "task-done" {
-			// should update points to mysql
-			if _, err := ctx.User.UpdateScore(m.User.ID, m.Point); err != nil {
-				fmt.Errorf("Error while running UpdateScore: %v", err)
-=======
 		if name == "authQueue" {
 			log.Printf("Received a auth: %v", string(d.Body[:]))
 			user := &users.User{}
 			if err := json.Unmarshal(d.Body, user); err != nil {
 				log.Printf("Error while unmarshal of d.Body: %v", err)
 				fmt.Errorf("Error while unmarshal of d.Body: %v", err)
->>>>>>> 5cef0e7758364f60ed936530593a50894106fdc3
 				return
 			}
 			log.Printf("Received a auth: %v", user)

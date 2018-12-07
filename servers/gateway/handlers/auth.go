@@ -17,8 +17,8 @@ import (
 // sign up => /users
 func (context *HandlerContext) UsersHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method == http.MethodPost {
-		header := r.Header.Get("Content-Type")
-		if !strings.HasPrefix(header, "application/json") {
+		header := r.Header.Get(contentType)
+		if !strings.HasPrefix(header, contentTypeJSON) {
 			http.Error(w, "Request body must be in JSON", http.StatusUnsupportedMediaType)
 			return
 		}
@@ -28,7 +28,6 @@ func (context *HandlerContext) UsersHandler(w http.ResponseWriter, r *http.Reque
 			http.Error(w, "Decoding problem", http.StatusBadRequest)
 			return
 		}
-
 		user, err := newUser.ToUser()
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusBadRequest)
@@ -88,7 +87,6 @@ func (context *HandlerContext) CreateHandler(w http.ResponseWriter, r *http.Requ
 			http.Error(w, err.Error(), http.StatusBadRequest)
 			return
 		}
-		// log.Println("user role %v", u.Role)
 		if u.Role == "Admin" {
 			http.Error(w, "User must be default to create a room", http.StatusUnauthorized)
 			return
@@ -113,23 +111,17 @@ func (context *HandlerContext) CreateHandler(w http.ResponseWriter, r *http.Requ
 			return
 		}
 		se := &SessionState{}
-
 		context.Session.Get(sid, se)
-		// log.Println("user added role se %v", se.User.Role)
-
 		if err = added.ApplyUpdates(admin); err != nil {
 			http.Error(w, err.Error(), http.StatusBadRequest)
 			return
 		}
-		// log.Println("user added role %v", added.Role)
-
 		// insert into family table
 		fam, err := context.Family.InsertFam(family)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusBadRequest)
 			return
 		}
-
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusCreated)
 		if err = json.NewEncoder(w).Encode(fam); err != nil {
