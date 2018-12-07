@@ -89,32 +89,12 @@ func (context *HandlerContext) DisplayHandler(w http.ResponseWriter, r *http.Req
 		}
 		// if user is authenticated, get the room id
 		roomname := path.Base(r.URL.Path)
-		// log.Println("this is roomid %s", roomid)
-		// room, err := strconv.ParseInt(roomid, 10, 64)
-		// if err != nil {
-		// 	http.Error(w, err.Error(), http.StatusInternalServerError)
-		// 	return
-		// }
-		// split := strings.Split(r.URL.Path, "/")
-		// log.Println("this is split %d", len(split))
-		// if len(split) > 3 {
-		// 	http.Error(w, "User must be authenticated", http.StatusUnauthorized)
-		// 	return
-		// }
-		// fam, err := context.Family.GetRoomName(room)
-		// if err != nil {
-		// 	http.Error(w, err.Error(), http.StatusInternalServerError)
-		// 	return
-		// }
-		// log.Println("this is fam %v", fam.RoomName)
-
 		// once get the room name, get all the users in that room
 		userArr, err := context.User.GetByRoomName(roomname)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
-		// log.Println("this is userarr %v", userArr)
 
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
