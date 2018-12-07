@@ -15,7 +15,7 @@ We want to build a handy app that organizes tasks in a family unit. The intentio
 
 ## Overview
 
-![Alt text](/img/final.jpeg?raw=true "Overview of project")
+![Alt text](/img/final.jpg?raw=true "Overview of project")
 
 ## Priority for This Project
 
