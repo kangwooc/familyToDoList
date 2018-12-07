@@ -63,3 +63,35 @@ We want to build a handy app that organizes tasks in a family unit. The intentio
 | isProgress | bool |
 | userID | int |
 | familyRoomName | varchar |
+
++ Endpoints
+
+<li>	GET	/tasks/:roomname</li>
+<ul>
+<li>    If a user is a member/admin of the family, shows the public to do list</li>
+<li>        500, 200, 401</li>
+</ul>
+<li>	POST	/tasks/:roomname
+<ul>
+<li>	If a user is an admin of the family, post new task in task list</li>
+<li>	400, 500, 201, 401</li>
+</ul>
+<li>	PATCH	/tasks/:id
+<ul>
+<li>	If a user is an admin of the family, update the task in task list</li>
+<li>	400, 500, 200, 401</li>
+</ul>
+<li>	DELETE	/tasks/:id
+<ul>
+<li>	If a user is an admin of the family, delete the task in task list</li>
+<li>	500, 200, 401</li>
+</ul>
+<li>	POST	/tasks/progress/:id
+<ul>
+<li>	If a user is a member of the family, add task to his/her private task list</li>
+<li>	401, 500, 200</li>
+</ul>
+<li>	POST	/tasks/done/:id
+<ul>
+<li>	If a user is a member of the family, delete task from his/her private task list</li>
+<li>	401, 500, 200</li>
