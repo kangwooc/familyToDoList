@@ -94,15 +94,6 @@ func main() {
 	)
 	failOnError(err, "Failed to declare a queue")
 
-	/*
-		err = ch.Qos(
-			1,     // prefetch count
-			0,     // prefetch size
-			false, // global
-		)
-		failOnError(err, "Failed to set QoS")
-	*/
-
 	msgs, err := ch.Consume(
 		request.Name, // queue
 		"",           // consumer
@@ -112,21 +103,13 @@ func main() {
 		false,        // no-wait
 		nil,          // args
 	)
-	// forever := make(chan bool)
-	// log.Printf("Debug: after consume: %v", msgs)
 	failOnError(err, "Failed to register a consumer")
 
 	go n.Start(msgs, request.Name, ctx)
 
-	//forever := make(chan bool)
-	// log.Printf("Debug: after consume: %v", msgs)
-	// failOnError(err, "Failed to register a consumer")
-	// go n.Start(msgs, request.Name, ctx)
-	// <-forever
-	//
 	request, err = ch.QueueDeclare(
 		"authQueue", // name matches what we used in our go auth
-		false,        // durable
+		false,       // durable
 		false,       // delete when unused
 		false,       // exclusive
 		false,       // no-wait
