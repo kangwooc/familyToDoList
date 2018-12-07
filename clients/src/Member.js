@@ -157,6 +157,9 @@ export default class MemberView extends React.Component {
                 </nav>
                 <div>
                     <h3 className="p-3">Current Task List</h3>
+                    <h5 className="p-3">Your current level is Lv.{(this.state.score / 100)}.</h5>
+                    <h5 className="p-3">{100 - (this.state.score % 100)} more points to the next level!</h5>
+
                 </div>
                 {this.state.data}
             </div>
