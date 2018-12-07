@@ -68,7 +68,7 @@ export default class AdminView extends React.Component {
                             <div className="username col-md-4">
                                 <div className="container p-2">
                                     <div className="border">
-                                        <p className="p-2">{info.firstname + " " + info.lastname + " Lv." + (info.score/100)}
+                                        <p className="p-2">{info.firstname + " " + info.lastname}
                                             <button className="btn btn-danger my-2 my-sm-0 pull-right" onClick={() => this.handleDelete(info.id)}>
                                                 Delete
                                     </button>
