@@ -1,18 +1,28 @@
 package handlers
 
 import (
+	"bytes"
 	"encoding/json"
 	"final-project-zco/servers/gateway/models/users"
 	"final-project-zco/servers/gateway/sessions"
 	"log"
 	"net/http"
+	"os"
 	"strings"
+
+	"github.com/streadway/amqp"
 )
 
 type status struct {
 	Role     string `json:"personrole"`
 	RoomName string `json:"roomname"`
 	MemberID int64  `json:"memberid"`
+}
+
+func failOnError(err error, msg string) {
+	if err != nil {
+		log.Fatalf("%s: %s", msg, err)
+	}
 }
 
 // JoinHandler join a family room
@@ -76,10 +86,46 @@ func (context *HandlerContext) JoinHandler(w http.ResponseWriter, r *http.Reques
 		} else {
 			userSlice = newSlice
 		}
+
+		rabbit := os.Getenv("RABBITADDR")
+
+		conn, err := amqp.Dial("amqp://" + rabbit + "/")
+		failOnError(err, "Failed to connect to RabbitMQ")
+		defer conn.Close()
+
+		ch, err := conn.Channel()
+		failOnError(err, "Failed to open a channel")
+		defer ch.Close()
+		q, err := ch.QueueDeclare(
+			"authQueue", // name
+			false,       // durable
+			false,       // delete when unused
+			false,       // exclusive
+			false,       // no-wait
+			nil,         // arguments
+		)
+		failOnError(err, "Failed to declare a queue")
+
+		var user bytes.Buffer // Stand-in for a network connection
+		body := sessionState.User
+		err = json.NewEncoder(&user).Encode(body)
+		if err != nil {
+			log.Fatal("encode error:", err)
+		}
+		err = ch.Publish(
+			"",     // exchange
+			q.Name, // routing key
+			false,  // mandatory
+			false,  // immediate
+			amqp.Publishing{
+				ContentType: "text/plain",
+				Body:        user.Bytes(),
+			})
+		failOnError(err, "Failed to publish a message")
+
 		context.Request[admin.ID] = append(userSlice, added)
 		w.Header().Set("Content-Type", "text/plain")
 		w.Write([]byte("Sent"))
-		//Is this right status?
 		w.WriteHeader(http.StatusOK)
 	} else {
 		http.Error(w, "Current status method is not allowed", http.StatusMethodNotAllowed)

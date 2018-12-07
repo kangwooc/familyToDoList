@@ -37,13 +37,15 @@ docker run -d \
 --network finalnetwork \
 mongo
 
+sleep 40
+
 docker run -d \
 --hostname rabbit \
 --name rabbitsvr \
 --network finalnetwork \
 rabbitmq:3-management
 
-sleep 30
+sleep 40
 
 docker run -d \
 --name tasking \
