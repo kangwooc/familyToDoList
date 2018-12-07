@@ -89,7 +89,7 @@ export default class MainView extends React.Component {
                                                 "Admin"
                                         }
                                     >
-                                        {task.progress
+                                        {task.isProgress
                                             ? "Assigned"
                                             : "Not Assigned"}
                                     </button>
